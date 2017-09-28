@@ -6,15 +6,18 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
   // game settings
-  [Header("Game Settings")]
-  public int nOfSheep;
+  [Header("N of sheep")]
+  public int nOfSheep = 100;
   [HideInInspector]
   public int sheepCount;
 
+  // GUI
+  [Header("GUI")]
+  public Text countdownText;
+  public Text scoreText;
+
   // timer
-  private float gameDuration = 150.0f;
-  [HideInInspector]
-  public float gameDurationTimer;
+  private float gameTimer = 150.0f;
 
   // game settings
   // hardcoded spawn boundaries
@@ -50,7 +53,6 @@ public class GameManager : MonoBehaviour
   private float neighboursUpdateInterval = .5f;
   private float neighboursTimer;
 
-
   void Start()
   {
     // spawn
@@ -64,7 +66,6 @@ public class GameManager : MonoBehaviour
 
     // timers
     neighboursTimer = neighboursUpdateInterval;
-    gameDurationTimer = gameDuration;
   }
 
   void SpawnSheep()
@@ -102,7 +103,11 @@ public class GameManager : MonoBehaviour
 
   public void Quit()
   {
-    Application.Quit();
+#if UNITY_EDITOR
+    UnityEditor.EditorApplication.isPlaying = false;
+#else
+      Application.Quit();
+#endif
   }
 
   void Update()
@@ -110,23 +115,29 @@ public class GameManager : MonoBehaviour
     // pause menu
     if (Input.GetKeyDown(KeyCode.Escape))
     {
-#if UNITY_EDITOR
-      UnityEditor.EditorApplication.isPlaying = false;
-#else
-      Application.Quit();
-#endif
+      Quit();
     }
 
     // update
     UpdateNeighbours();
 
     // game timer
-    gameDurationTimer -= Time.deltaTime;
+    gameTimer -= Time.deltaTime;
 
-    if (gameDurationTimer < 0 || sheepCount <= 0)
+    if (gameTimer > 10.0f)
+      countdownText.text = ((int)Mathf.Ceil(gameTimer)).ToString();
+    else
     {
-      // end game
-      // TODO save score
+      gameTimer = Mathf.Max(gameTimer, .0f);
+      countdownText.text = ((float)System.Math.Round(gameTimer, 2)).ToString();
+    }
+
+    scoreText.text = sheepCount.ToString();
+
+    if (gameTimer == 0 || sheepCount <= 0)
+    {
+      // TODO save score - number of dogs, remaining time, remaining sheep
+      Quit();
     }
   }
 
