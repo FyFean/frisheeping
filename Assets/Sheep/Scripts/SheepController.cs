@@ -1,15 +1,18 @@
-﻿using UnityEngine;
+﻿#define DEBUG_ON
+
+using UnityEngine;
 using System.Collections.Generic;
 
 public class SheepController : MonoBehaviour
 {
   // id
-  [HideInInspector]
+//  [HideInInspector]
   public int id;
 
   // state
   [HideInInspector]
   public Enums.SheepState sheepState;
+  public Enums.SheepState previousSheepState;
 
   // Sheeps Animator Controller
   public Animator anim;
@@ -21,8 +24,9 @@ public class SheepController : MonoBehaviour
   private GameManager GM;
 
   // heading and postion
-  private Vector3 desiredTheta;
-  private float maxTurn = .07f;
+  private float desiredTheta = .0f;
+  private float theta;
+  private float maxTurn = .07f/.016f;
 
   // barn interaction
   /*
@@ -46,34 +50,34 @@ public class SheepController : MonoBehaviour
   public float dogRepulsion2;
 
   // neighbour interaction
-  private float r_o = 1.5f; // original 1.0f
-  private float r_e = 1.5f; // original 1.0f
+  private float r_o = 1f;//1.5f; // original 1.0f
+  private float r_e = 1f;//1.5f; // original 1.0f
   [HideInInspector]
   public float r_o2;
 
   // speed
-  private float maxSpeedChange = .1f;
+  private float maxSpeedChange = .1f/.016f;
   private float desiredV = .0f;
   private float v;
   private float v_1 = 1.0f; // original 0.15f
-  private float v_2 = 5.0f; // original 1.5f
+  private float v_2 = 7.5f; // original 1.5f
 
   // noise
   private float eta = 0.2f; // original 0.13f
 
   // beta - cohesion factor
-  private float beta = 3.0f; // original 0.8f
+  private float beta = .8f;//3.0f; // original 0.8f
 
   // alpha, delta, transition parameters
   private float alpha = 15.0f;
   private float delta = 4.0f;
-  private float tau_iw = 1.0f; // original 35
-  private float tau_wi = 15.0f; // original 8
+  private float tau_iw = 35f;//1.0f; // original 35
+  private float tau_wi = 8f;//15.0f; // original 8
   private float tau_iwr;
   private float tau_ri;
-  private float d_R = 15.0f; // original 31.6f
-  private float d_S = .66f; // original 6.3f
-  private int n_idle = 0, n_walking = 0, m_idle = 0, m_running = 0;
+  private float d_R = 31.6f;//15.0f; // original 31.6f
+  private float d_S = 6.3f;//.66f; // original 6.3f
+  private int n_idle = 0, n_walking = 0, m_toidle = 0, m_idle = 0, m_running = 0;
   float l_i = .0f;
 
   // neighbour list
@@ -114,6 +118,7 @@ public class SheepController : MonoBehaviour
 
     // random state
     sheepState = (Enums.SheepState)Random.Range(0, 3);
+    previousSheepState = sheepState;
 
     // speed
     SetSpeed();
@@ -124,9 +129,9 @@ public class SheepController : MonoBehaviour
     tau_ri = GM.sheepCount;
 
     // random heading
-    float theta = Random.Range(-Mathf.PI, Mathf.PI);
+    desiredTheta = Random.Range(-Mathf.PI, Mathf.PI);
+    theta = desiredTheta;
     transform.forward = new Vector3(Mathf.Cos(theta), .0f, Mathf.Sin(theta)).normalized;
-    desiredTheta = transform.forward;
 
     // timer
     stateTimer = Random.Range(.0f, stateUpdateInterval);
@@ -152,8 +157,6 @@ public class SheepController : MonoBehaviour
       cottonColor = new Color(grayShade, grayShade, grayShade, 1.0f);
     }
 
-
-
     foreach (Renderer fur in sheepCottonParts)
     {
       if (fur.materials.Length < 2) fur.material.color = cottonColor;
@@ -163,26 +166,48 @@ public class SheepController : MonoBehaviour
 
   void SetSpeed()
   {
+#if DEBUG_ON
+    Color cottonColor = Color.white;
+#endif
+
     // debug coloring and speed
     switch (sheepState)
     {
       case Enums.SheepState.idle:
         desiredV = .0f;
+#if DEBUG_ON
+        cottonColor = new Color(.2f, .2f, .2f, 1.0f);
+#endif
         //meshRenderer.material.color = new Color(1.0f, 1.0f, .0f);
         break;
       case Enums.SheepState.walking:
         desiredV = v_1;
+#if DEBUG_ON
+        cottonColor = new Color(1.0f, .5f, .0f, 1.0f);
+#endif
         //meshRenderer.material.color = new Color(.0f, .0f, 1.0f);
         break;
       case Enums.SheepState.running:
         desiredV = v_2;
+#if DEBUG_ON
+        cottonColor = new Color(.0f, 1.0f, .0f, 1.0f);
+#endif
         //meshRenderer.material.color = new Color(1.0f, .0f, .0f);
         break;
     }
+
+#if DEBUG_ON
+    foreach (Renderer fur in sheepCottonParts)
+    {
+      if (fur.materials.Length < 2) fur.material.color = cottonColor;
+      else fur.materials[1].color = cottonColor;
+    }
+#endif
   }
 
   void Update()
   {
+    /* behavour logic */
     drivesTimer -= Time.deltaTime;
     stateTimer -= Time.deltaTime;
 
@@ -206,19 +231,25 @@ public class SheepController : MonoBehaviour
 
       drivesTimer = drivesUpdateInterval;
     }
+    /* end of behaviour logic */
 
-    Vector3 newHeading = Vector3.RotateTowards(transform.forward, desiredTheta, maxTurn, .0f);
-    newHeading.y = .0f;
+    // compute angular change based on max angular velocity and desiredTheta
+    theta = Mathf.MoveTowardsAngle(Mathf.Rad2Deg * theta, Mathf.Rad2Deg * desiredTheta, Mathf.Rad2Deg * maxTurn * Time.deltaTime) * Mathf.Deg2Rad;
+    // ensure angle remains in [-Pi,Pi)
+    theta = (theta + Mathf.PI) % (2f * Mathf.PI) - Mathf.PI;
+    // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
+    v = Mathf.MoveTowards(v, desiredV, maxSpeedChange * Time.deltaTime);
 
-    float deltaV = desiredV - v;
-    v += Mathf.Min(maxSpeedChange, Mathf.Abs(deltaV)) * Mathf.Sign(deltaV);
+    // compute new forward direction
+    Vector3 newForward = new Vector3(Mathf.Cos(theta), .0f, Mathf.Sin(theta)).normalized;
 
-    //Vector3 s_i = new Vector3(Mathf.Cos(theta), .0f, Mathf.Sin(theta));
-    Vector3 newPosition = transform.position + (Time.deltaTime * v * newHeading);
-    newPosition.y = .0f;
+    // update position
+    Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
+    // force ground, to revert coliders making sheep fly
+    newPosition.y = 0f;
 
     transform.position = newPosition;
-    transform.forward = newHeading;
+    transform.forward = newForward;
 
     // Sheep state animation
     anim.SetBool("IsIdle", sheepState == Enums.SheepState.idle);
@@ -229,6 +260,7 @@ public class SheepController : MonoBehaviour
   {
     n_idle = 0;
     n_walking = 0;
+    m_toidle = 0;
     m_idle = 0;
     m_running = 0;
 
@@ -258,6 +290,8 @@ public class SheepController : MonoBehaviour
       switch (neighbour.sheepState)
       {
         case Enums.SheepState.idle:
+          if (neighbour.previousSheepState == Enums.SheepState.running)
+            m_toidle++;
           m_idle++;
           break;
         case Enums.SheepState.running:
@@ -277,9 +311,12 @@ public class SheepController : MonoBehaviour
 
   void UpdateState()
   {
+    previousSheepState = sheepState;
+
+//    float d_i = dogRepulsion2; // min distance to dogNeighbours
     // if dog detected switch state differently
     if (dogNeighbours.Count > 0)
-    {
+    { // this could be coded like piwr & pri the l_i/d_R, d_S/l_i parts, but l_i being the mean distance to the dog(s)
       // dog repulsion
       foreach (DogController DC in dogNeighbours)
       {
@@ -291,6 +328,7 @@ public class SheepController : MonoBehaviour
           sheepState = Enums.SheepState.running;
         else if (sheepState != Enums.SheepState.running)
           sheepState = Enums.SheepState.walking;
+//        d_i = Mathf.Min(d_i, dist); 
       }
     }
     else
@@ -305,13 +343,28 @@ public class SheepController : MonoBehaviour
       float p_wi = (1 + alpha * n_idle) / tau_wi;
       p_wi = 1 - Mathf.Exp(-p_wi * stateUpdateInterval);
       float p_iwr = .0f;
-      float p_ri = .0f;
+      float p_ri = 1.0f; // since l_i is in the denominator of the eq for p_ri
 
       if (l_i > .0f)
       {
+#if false // experiment with dogRepulsion not forcing state change
+        if (d_i < dogRepulsion) // feel unsafe sooner
+          p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / (d_R*.75f)) * (1 + alpha * m_running), delta);
+        else if (d_i < strongDogRepulsion) // feel unsafe much sooner
+          p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / (d_R*.1f)) * (1 + alpha * m_running), delta);
+        else 
+#endif
         p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / d_R) * (1 + alpha * m_running), delta);
         p_iwr = 1 - Mathf.Exp(-p_iwr * stateUpdateInterval);
-        p_ri = (1 / tau_ri) * Mathf.Pow((d_S / l_i) * (1 + alpha * m_idle), delta);
+
+#if false // experiment with dogRepulsion not forcing state change
+        if (d_i < dogRepulsion) // feel safe later
+          p_ri = (1 / tau_ri) * Mathf.Pow(((d_S*.75f) / l_i) * (1 + alpha * m_toidle), delta);
+        else if (d_i < strongDogRepulsion) // feel safe much sooner
+          p_ri = (1 / tau_ri) * Mathf.Pow(((d_S*.1f) / l_i) * (1 + alpha * m_toidle), delta);
+        else
+#endif
+        p_ri = (1 / tau_ri) * Mathf.Pow((d_S / l_i) * (1 + alpha * m_toidle), delta);
         p_ri = 1 - Mathf.Exp(-p_ri * stateUpdateInterval);
       }
 
@@ -325,7 +378,7 @@ public class SheepController : MonoBehaviour
         if (random < p_iw)
           sheepState = Enums.SheepState.walking;
       }
-
+      else // added to reflect SheepOptimization code
       if (sheepState == Enums.SheepState.walking)
       {
         random = Random.Range(.0f, 1.0f);
@@ -341,7 +394,7 @@ public class SheepController : MonoBehaviour
         if (random < p_iwr)
           sheepState = Enums.SheepState.running;
       }
-
+      else // added to reflect SheepOptimization code
       // while testing the transition to running also test the transition from running to standing
       if (sheepState == Enums.SheepState.running)
       {
@@ -356,7 +409,10 @@ public class SheepController : MonoBehaviour
 
   void DrivesUpdate()
   {
-    desiredTheta = transform.forward;
+    // desired heading in vector form
+    Vector3 desiredThetaVector = new Vector3();
+    // noise
+    float eps = 0f;
 
     // declarations
     Vector3 e_ij, s_f;
@@ -384,7 +440,7 @@ public class SheepController : MonoBehaviour
       }
 
       f_ij = dogRepulsion / Vector3.Magnitude(e_ij);
-      desiredTheta += dogWeight * f_ij * -e_ij.normalized;
+      desiredThetaVector += dogWeight * f_ij * -e_ij.normalized;
     }
 
     Vector3 closestPoint;
@@ -414,12 +470,12 @@ public class SheepController : MonoBehaviour
         // weak repulsion
         dot = Vector3.Dot(e_ij.normalized, transform.forward);
         s_f = transform.forward - (dot * e_ij);
-        desiredTheta += s_f * fenceWeight;
+        desiredThetaVector += s_f * fenceWeight;
 
         if (sheepState == Enums.SheepState.running)
         {
           f_ij = fenceRepulsion / Vector3.Magnitude(e_ij);
-          desiredTheta += fenceWeight * f_ij * -e_ij.normalized;
+          desiredThetaVector += fenceWeight * f_ij * -e_ij.normalized;
         }
       }
     }
@@ -431,30 +487,46 @@ public class SheepController : MonoBehaviour
       {
         foreach (SheepController neighbour in metricNeighbours)
         {
-          desiredTheta += neighbour.transform.forward;
+          desiredThetaVector += neighbour.transform.forward;
 
           e_ij = neighbour.transform.position - transform.position;
-          f_ij = Mathf.Min(1.0f, ((Vector3.Magnitude(e_ij) - r_o) / r_o));
-          desiredTheta += beta * f_ij * e_ij.normalized;
+          f_ij = Mathf.Min(.0f, ((Vector3.Magnitude(e_ij) - r_o) / r_o)); // perform only separation to reflect Ginelli model
+          desiredThetaVector += beta * f_ij * e_ij.normalized;
         }
 
+        // for sheep with no Metric neighbours set desiredTheta to current forward i.e. no change
+        if (metricNeighbours.Count == 0)
+          desiredThetaVector += transform.forward;
+
         // noise
-        float eps = Random.Range(-Mathf.PI, Mathf.PI);
-        desiredTheta += new Vector3(Mathf.Cos(eps), .0f, Mathf.Sin(eps)) * eta;
+        eps += Random.Range(-Mathf.PI * eta, Mathf.PI * eta);
       }
       else
+      if (sheepState == Enums.SheepState.running)
       {
         foreach (SheepController neighbour in topologicNeighbours)
         {
           if (neighbour.sheepState == Enums.SheepState.running)
-            desiredTheta += neighbour.transform.forward;
+            desiredThetaVector += neighbour.transform.forward;
 
           e_ij = neighbour.transform.position - transform.position;
           f_ij = Mathf.Min(1.0f, ((Vector3.Magnitude(e_ij) - r_e) / r_e));
-          desiredTheta += beta * f_ij * e_ij.normalized;
+          desiredThetaVector += beta * f_ij * e_ij.normalized;
         }
+
+        // for sheep with no Voronoi neighbours set desiredTheta to current forward i.e. no change
+        if (topologicNeighbours.Count == 0)
+          desiredThetaVector += transform.forward;
+      }
+      else
+      if (sheepState == Enums.SheepState.idle)
+      {
+        // for idle sheep there is no change ... this could be a also random noise (grazing while idle)
+        desiredThetaVector += transform.forward;
       }
     }
-    desiredTheta.Normalize();
+
+    // extract desired heading
+    desiredTheta = Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps;
   }
 }

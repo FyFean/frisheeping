@@ -155,9 +155,8 @@ public class GameManager : MonoBehaviour
       {
         if (!sheep.dead)
         {
-          sheep.metricNeighbours.Clear();
-          sheep.topologicNeighbours.Clear();
-          sheep.dogNeighbours.Clear();
+          // perform updates by swap to prevent empty lists due to asynchronous execution
+          List<DogController> dogNeighbours = new List<DogController>();
 
           points.Add(new Vector2f(sheep.transform.position.x, sheep.transform.position.z, sheep.id));
 
@@ -165,8 +164,11 @@ public class GameManager : MonoBehaviour
           foreach (DogController DC in dogs)
           {
             if ((sheep.transform.position - DC.transform.position).sqrMagnitude < sheep.dogRepulsion2)
-              sheep.dogNeighbours.Add(DC);
+              dogNeighbours.Add(DC);
           }
+
+          // perform updates by swap to prevent empty lists due to asynchronous execution
+          sheep.dogNeighbours = dogNeighbours;
         }
       }
 
@@ -179,16 +181,23 @@ public class GameManager : MonoBehaviour
         SheepController sheep = sheepList[pt.id];
         if (!sheep.dead)
         {
+          // perform updates by swap to prevent empty lists due to asynchronous execution
+          List<SheepController> metricNeighbours = new List<SheepController>();
+          List<SheepController> topologicNeighbours = new List<SheepController>();
+
           foreach (Vector2f neighbourPt in voronoi.NeighborSitesForSite(pt))
           {
             SheepController neighbour = sheepList[neighbourPt.id];
-            sheep.topologicNeighbours.Add(neighbour);
+            topologicNeighbours.Add(neighbour);
 
-
+            // note that this may not include all true metric neighbours
             if ((sheep.transform.position - neighbour.transform.position).sqrMagnitude < sheep.r_o2)
-              sheep.metricNeighbours.Add(neighbour);
-
+              metricNeighbours.Add(neighbour);
           }
+
+          // perform updates by swap to prevent empty lists due to asynchronous execution
+          sheep.topologicNeighbours = topologicNeighbours;
+          sheep.metricNeighbours = metricNeighbours;
         }
       }
     }
