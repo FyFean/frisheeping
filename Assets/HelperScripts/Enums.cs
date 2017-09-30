@@ -6,4 +6,11 @@
     walking,
     running
   }
+
+  public enum DogState
+  {
+    idle,
+    walking,
+    running
+  }
 }

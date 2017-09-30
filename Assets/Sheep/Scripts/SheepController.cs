@@ -50,8 +50,8 @@ public class SheepController : MonoBehaviour
   public float dogRepulsion2;
 
   // neighbour interaction
-  private float r_o = 1f;//1.5f; // original 1.0f
-  private float r_e = 1f;//1.5f; // original 1.0f
+  private float r_o = 1.5f; // original 1.0f
+  private float r_e = 1.5f; // original 1.0f
   [HideInInspector]
   public float r_o2;
 
@@ -313,25 +313,27 @@ public class SheepController : MonoBehaviour
   {
     previousSheepState = sheepState;
 
-//    float d_i = dogRepulsion2; // min distance to dogNeighbours
+    float d_i = dogRepulsion2; // min distance to dogNeighbours
     // if dog detected switch state differently
-    if (dogNeighbours.Count > 0)
+    // if (dogNeighbours.Count > 0)
     { // this could be coded like piwr & pri the l_i/d_R, d_S/l_i parts, but l_i being the mean distance to the dog(s)
       // dog repulsion
       foreach (DogController DC in dogNeighbours)
       {
         float dist = (DC.transform.position - transform.position).magnitude;
 
+#if false // experiment with dogRepulsion not forcing state change
         // override state and speed
         // running when dog is close, walking when dog is medium distance away
         if (dist < strongDogRepulsion)
           sheepState = Enums.SheepState.running;
         else if (sheepState != Enums.SheepState.running)
           sheepState = Enums.SheepState.walking;
-//        d_i = Mathf.Min(d_i, dist); 
+#endif
+        d_i = Mathf.Min(d_i, dist); 
       }
     }
-    else
+    // else
     {
       // set transition parameters in case sheep number changes
       tau_iwr = GM.sheepCount;
@@ -347,22 +349,22 @@ public class SheepController : MonoBehaviour
 
       if (l_i > .0f)
       {
-#if false // experiment with dogRepulsion not forcing state change
-        if (d_i < dogRepulsion) // feel unsafe sooner
+#if true // experiment with dogRepulsion not forcing state change
+        if (d_i < strongDogRepulsion) // feel unsafe much sooner
+          p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / (d_R * .1f)) * (1 + alpha * m_running), delta);
+        else if (d_i < dogRepulsion) // feel unsafe sooner
           p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / (d_R*.75f)) * (1 + alpha * m_running), delta);
-        else if (d_i < strongDogRepulsion) // feel unsafe much sooner
-          p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / (d_R*.1f)) * (1 + alpha * m_running), delta);
         else 
 #endif
         p_iwr = (1 / tau_iwr) * Mathf.Pow((l_i / d_R) * (1 + alpha * m_running), delta);
         p_iwr = 1 - Mathf.Exp(-p_iwr * stateUpdateInterval);
 
-#if false // experiment with dogRepulsion not forcing state change
-        if (d_i < dogRepulsion) // feel safe later
+#if true // experiment with dogRepulsion not forcing state change
+        if (d_i < strongDogRepulsion) // feel safe much sooner
+          p_ri = (1 / tau_ri) * Mathf.Pow(((d_S * .1f) / l_i) * (1 + alpha * m_toidle), delta);
+        else if (d_i < dogRepulsion) // feel safe later
           p_ri = (1 / tau_ri) * Mathf.Pow(((d_S*.75f) / l_i) * (1 + alpha * m_toidle), delta);
-        else if (d_i < strongDogRepulsion) // feel safe much sooner
-          p_ri = (1 / tau_ri) * Mathf.Pow(((d_S*.1f) / l_i) * (1 + alpha * m_toidle), delta);
-        else
+        else 
 #endif
         p_ri = (1 / tau_ri) * Mathf.Pow((d_S / l_i) * (1 + alpha * m_toidle), delta);
         p_ri = 1 - Mathf.Exp(-p_ri * stateUpdateInterval);
@@ -423,6 +425,7 @@ public class SheepController : MonoBehaviour
     {
       e_ij = DC.transform.position - transform.position;
 
+#if false // sheep fear controlled in UpdateState
       // override state and speed
       // running when dog is close, walking when dog is medium distance away
       if (e_ij.magnitude < strongDogRepulsion)
@@ -438,8 +441,9 @@ public class SheepController : MonoBehaviour
           v = v_1;
         }
       }
+#endif
 
-      f_ij = dogRepulsion / Vector3.Magnitude(e_ij);
+      f_ij = strongDogRepulsion / Vector3.Magnitude(e_ij);
       desiredThetaVector += dogWeight * f_ij * -e_ij.normalized;
     }
 
@@ -481,7 +485,7 @@ public class SheepController : MonoBehaviour
     }
 
     // interactions only if no dogs
-    if (dogNeighbours.Count == 0)
+//    if (dogNeighbours.Count == 0)
     {
       if (sheepState == Enums.SheepState.walking)
       {
