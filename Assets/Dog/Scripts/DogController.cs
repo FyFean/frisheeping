@@ -1,12 +1,18 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
 
 public class DogController : MonoBehaviour
 {
   public bool Strombom = false;
+  public bool Local = false;
   public float ro = 1.5f;// length equal to SheepController::r_o 
   public float rs = 3 * 1.5f;// length at which dog stops 3ro
   public float rw = 6 * 1.5f;// length at which dog starts walking
   public float rr = 9 * 1.5f;// length at which dog starts running
+  public int ns = 20; // size of local subgroups
+  public float blindAngle = 60f;
 
   // state
   [HideInInspector]
@@ -32,7 +38,7 @@ public class DogController : MonoBehaviour
 
   private float theta;
   private float desiredTheta = .0f;
-  private float maxTurn = .03f/.016f;
+  private float maxTurn = 4.5f/.016f; // in deg
 
   // animation bools
   private bool turningLeft = false;
@@ -49,19 +55,18 @@ public class DogController : MonoBehaviour
     v = desiredV;
 
     // heading is current heading
-    desiredTheta = Mathf.Atan2(transform.forward.z, transform.forward.y);
+    desiredTheta = Mathf.Atan2(transform.forward.z, transform.forward.y) * Mathf.Rad2Deg;
     theta = desiredTheta;
-    transform.forward = new Vector3(Mathf.Cos(theta), .0f, Mathf.Sin(theta)).normalized;
+    transform.forward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
   }
 
   // Update is called once per frame
-  void FixedUpdate()
+  void Update()
   {
     if (Strombom)
       BehaviourLogic();
     else
       Controls();
-
 
     DogMovement();
   }
@@ -91,10 +96,32 @@ public class DogController : MonoBehaviour
     }
     else
     {
-      desiredTheta = theta + Mathf.MoveTowardsAngle(Mathf.Rad2Deg * (desiredTheta - theta), 0, Mathf.Rad2Deg * maxTurn  / 10f) * Mathf.Deg2Rad;
-      // ensure angle remains in [-Pi,Pi)
-      desiredTheta = (desiredTheta + Mathf.PI) % (2f * Mathf.PI) - Mathf.PI;
+      desiredTheta = theta + Mathf.MoveTowardsAngle((desiredTheta - theta), 0, maxTurn  / 10f);
+      // ensure angle remains in [-180,180)
+      desiredTheta = (desiredTheta + 180f) % 360f - 180f;
     }
+  }
+
+  public class ByDistanceFrom : IComparer<SheepController>
+  {
+    public Vector3 position { get; set; }
+    public ByDistanceFrom(Vector3 pos) { position = pos; }
+    public int Compare(SheepController sc1, SheepController sc2)
+    {
+      float dsc1 = (sc1.transform.position - position).sqrMagnitude;
+      float dsc2 = (sc2.transform.position - position).sqrMagnitude;
+
+      if (dsc1 > dsc2) return 1;
+      if (dsc1 < dsc2) return -1;
+      return 0;
+    }
+  }
+
+  private bool IsVisible(SheepController sc)
+  {
+    Vector3 toSc = sc.transform.position - transform.position;
+    float cos = Vector3.Dot(transform.forward, toSc);
+    return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
 
   void BehaviourLogic()
@@ -103,45 +130,45 @@ public class DogController : MonoBehaviour
     Vector3 desiredThetaVector = new Vector3();
     // noise
     float eps = 0f;
-    
+
     /* IMPLEMENT DOG LOGIC HERE */
     /* behavour logic */
 
-    // minimum distance to all sheep
-    // compute GCM of sheep
-    int sheepCount = 0;
-    Vector3 GCM = new Vector3();
-    foreach (SheepController sheep in GM.sheepList)
-    {
-      // exclude sheep already in barn
-      if (sheep.dead) continue;
+    // get only live sheep
+    List<SheepController> sheepList = new List<SheepController>(GM.sheepList).Where(sheep => !sheep.dead).ToList();
+    if (Local)
+    { // localized perception
+      sheepList = sheepList.Where(sheep => IsVisible(sheep)).ToList();
 
-      GCM += sheep.transform.position;
-      sheepCount++;
+      sheepList.Sort(new ByDistanceFrom(transform.position));
+      sheepList = sheepList.GetRange(0, Mathf.Min(ns, sheepList.Count));
     }
-    if (sheepCount > 0)
-      GCM /= (float)sheepCount;
 
+    // compute CM of sheep
+    Vector3 CM = new Vector3();
+    foreach (SheepController sheep in sheepList)
+      CM += sheep.transform.position;
+    if (sheepList.Count > 0)
+      CM /= (float)sheepList.Count;
+
+    // draw CM
     Vector3 X = new Vector3(1, 0, 0);
     Vector3 Z = new Vector3(0, 0, 1);
     Color color = new Color(0f, 0f, 0f, 1f);
-    Debug.DrawRay(GCM - X, 2*X, color);
-    Debug.DrawRay(GCM - Z, 2*Z, color);
+    Debug.DrawRay(CM - X, 2*X, color);
+    Debug.DrawRay(CM - Z, 2*Z, color);
 
-    // find distance of sheep that is nearest to the dog & distance of sheep furthest from GCM
+    // find distance of sheep that is nearest to the dog & distance of sheep furthest from CM
     float md_ds = Mathf.Infinity;
     SheepController sheep_c = new SheepController();
-    float Md_sG = 0;
-    foreach (SheepController sheep in GM.sheepList)
+    float Md_sC = 0;
+    foreach (SheepController sheep in sheepList)
     {
-      // exclude sheep already in barn
-      if (sheep.dead) continue;
-
-      // distance from GCM
-      float d_sG = (GCM - sheep.transform.position).magnitude;
-      if (d_sG > Md_sG)
+      // distance from CM
+      float d_sC = (CM - sheep.transform.position).magnitude;
+      if (d_sC > Md_sC)
       {
-        Md_sG = d_sG;
+        Md_sC = d_sC;
         sheep_c = sheep;
       }
 
@@ -150,17 +177,17 @@ public class DogController : MonoBehaviour
       md_ds = Mathf.Min(md_ds, d_ds);
     }
 
-    // if close to any sheep start walking
-    if (md_ds < rw)
-    {
-      dogState = Enums.DogState.idle;
-      desiredV = maxSpeed * .5f;
-    }
     // if too close to any sheep stop and wait
-    else if (md_ds < rs)
+    if (md_ds < rs)
     {
       dogState = Enums.DogState.idle;
       desiredV = .0f;
+    }
+    // if close to any sheep start walking
+    else if (md_ds < rw)
+    {
+      dogState = Enums.DogState.walking;
+      desiredV = maxSpeed * .5f;
     }
     else if (md_ds > rr)
     {
@@ -169,8 +196,10 @@ public class DogController : MonoBehaviour
       dogState = Enums.DogState.running;
     }
 
-    float f_N = ro*Mathf.Pow(sheepCount, 2f / 3f);
-    int prec = 10;
+    // aproximate radius of a circle
+    float f_N = ro*Mathf.Pow(sheepList.Count, 2f / 3f) / 2f;
+    // draw aprox herd size
+    int prec = 36;
     color = new Color(1f, 0f, 0f, 1f);
     for (int i = 0; i < prec;  i++)
     {
@@ -179,16 +208,16 @@ public class DogController : MonoBehaviour
       float phi1 = 2f * Mathf.PI * (i + 1) / prec;
       Vector3 r1 = new Vector3(Mathf.Cos(phi1), 0f, Mathf.Sin(phi1));
 
-      Debug.DrawLine(GCM + f_N*r, GCM + f_N*r1, color);
+      Debug.DrawLine(CM + f_N*r, CM + f_N*r1, color);
     }
 
     // if all agents in a single compact group, collect them
-    if (Md_sG < ro * Mathf.Pow(sheepCount, 2f / 3f))
+    if (Md_sC < f_N)
     {
       BarnController barn = FindObjectOfType<BarnController>();
 
       // compute position so that the GCM is on a line between the dog and the target
-      Vector3 Pd = GCM + (GCM - barn.transform.position).normalized * Mathf.Min(ro * Mathf.Sqrt(sheepCount), Md_sG);
+      Vector3 Pd = CM + (CM - barn.transform.position).normalized * Mathf.Min(ro * Mathf.Sqrt(sheepList.Count), Md_sC);
       desiredThetaVector = Pd - transform.position;
       if (desiredThetaVector.magnitude < rw)
         desiredV = maxSpeed * .5f;
@@ -202,7 +231,7 @@ public class DogController : MonoBehaviour
     else
     {
       // compute position so that the sheep most distant from the GCM is on a line between the dog and the GCM
-      Vector3 Pc = sheep_c.transform.position + (sheep_c.transform.position - GCM).normalized * ro;
+      Vector3 Pc = sheep_c.transform.position + (sheep_c.transform.position - CM).normalized * ro;
       // move in an arc around the herd??
       desiredThetaVector = Pc - transform.position;
 
@@ -214,23 +243,23 @@ public class DogController : MonoBehaviour
     }
 
     // extract desired heading
-    desiredTheta = Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps;
+    desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
     /* end of behaviour logic */
   }
 
   void DogMovement()
   {
     // compute angular change based on max angular velocity and desiredTheta
-    theta = Mathf.MoveTowardsAngle(Mathf.Rad2Deg * theta, Mathf.Rad2Deg * desiredTheta, Mathf.Rad2Deg * maxTurn * Time.deltaTime) * Mathf.Deg2Rad;
-    // ensure angle remains in [-Pi,Pi)
-    theta = (theta + Mathf.PI) % (2f * Mathf.PI) - Mathf.PI;
+    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, maxTurn * Time.deltaTime);
+    // ensure angle remains in [-180,180)
+    theta = (theta + 180f) % 360f - 180f;
     // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
     v = Mathf.MoveTowards(v, desiredV, maxSpeedChange * Time.deltaTime);
     // ensure speed remains in [minSpeed, maxSpeed]
     v = Mathf.Clamp(v, minSpeed, maxSpeed);
 
     // compute new forward direction
-    Vector3 newForward = new Vector3(Mathf.Cos(theta), .0f, Mathf.Sin(theta)).normalized;
+    Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
     // update position
     Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
     // force ground, to revert coliders making sheep fly

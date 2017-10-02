@@ -24069,6 +24069,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 870676705}
 --- !u!136 &493281636
@@ -34768,6 +34778,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 725928637}
 --- !u!136 &719680650
@@ -40511,7 +40531,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &846053318
 Transform:
   m_ObjectHideFlags: 0
@@ -42295,6 +42315,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 2112464666}
 --- !u!136 &882200099
@@ -42942,6 +42972,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 1461936301}
 --- !u!136 &895888367
@@ -44580,6 +44620,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 436308346}
 --- !u!136 &937636244
@@ -45184,6 +45234,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 393280178}
 --- !u!136 &946968608
@@ -50412,6 +50472,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 1998583370}
 --- !u!136 &1087310517
@@ -51823,6 +51893,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 1310112625}
 --- !u!136 &1120975546
@@ -67269,6 +67349,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 778301888}
 --- !u!136 &1453258660
@@ -101107,6 +101197,8 @@ MonoBehaviour:
   scoreText: {fileID: 1682426107}
   sheepPrefab: {fileID: 1797672417880888, guid: 8b16a8a0b45ab9647b8ad12c3ad37971,
     type: 2}
+  d_R: 31.6
+  d_S: 6.3
   sheepList: []
   fence: {fileID: 855683697}
   fenceColliders: []
@@ -101597,6 +101689,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Strombom: 0
+  Local: 0
+  ro: 1.5
+  rs: 4.5
+  rw: 9
+  rr: 13.5
+  ns: 20
+  blindAngle: 1.0471976
+  dogState: 0
+  previousDogState: 0
   controls: 0
   anim: {fileID: 987342282}
 --- !u!136 &2135583090

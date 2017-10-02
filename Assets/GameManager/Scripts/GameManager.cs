@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
   public GameObject sheepPrefab;
   // random size
   private float minSheepSize = .7f;
+  public float d_R = 31.6f;
+  public float d_S = 6.3f;
 
   // list of sheep
   [HideInInspector]
@@ -50,16 +52,13 @@ public class GameManager : MonoBehaviour
   public Material[] skyboxes;
 
   // update frequency
-  private float neighboursUpdateInterval = .5f;
+  private float neighboursUpdateInterval = 0*.5f;
   private float neighboursTimer;
 
   void Start()
   {
     // spawn
     SpawnSheep();
-
-    // find dogs
-    dogs = new List<DogController>(FindObjectsOfType<DogController>());
 
     // fences colliders
     fenceColliders = fence.GetComponentsInChildren<Collider>();
@@ -146,6 +145,9 @@ public class GameManager : MonoBehaviour
     neighboursTimer -= Time.deltaTime;
     if (neighboursTimer < 0)
     {
+      // find dogs
+      dogs = new List<DogController>(FindObjectsOfType<DogController>());
+
       neighboursTimer = neighboursUpdateInterval;
 
       List<Vector2f> points = new List<Vector2f>();
@@ -173,7 +175,7 @@ public class GameManager : MonoBehaviour
       }
 
       // topologic neighbours
-      Rectf bounds = new Rectf(-40.0f, -25.0f, 80.0f, 50.0f);
+      Rectf bounds = new Rectf(-50.0f, -60.0f, 100.0f, 100.0f);
       Voronoi voronoi = new Voronoi(points, bounds);
 
       foreach (Vector2f pt in points)
@@ -200,6 +202,17 @@ public class GameManager : MonoBehaviour
           sheep.metricNeighbours = metricNeighbours;
         }
       }
+
+#if false
+      Debug.DrawLine(new Vector3(bounds.x, 0, bounds.y), new Vector3(bounds.x + bounds.width, 0, bounds.y));
+      Debug.DrawLine(new Vector3(bounds.x + bounds.width, 0, bounds.y), new Vector3(bounds.x + bounds.width, 0, bounds.y + bounds.height));
+      Debug.DrawLine(new Vector3(bounds.x + bounds.width, 0, bounds.y + bounds.height), new Vector3(bounds.x, 0, bounds.y + bounds.height));
+      Debug.DrawLine(new Vector3(bounds.x, 0, bounds.y + bounds.height), new Vector3(bounds.x, 0, bounds.y));
+      foreach (LineSegment ls in voronoi.VoronoiDiagram())
+      {
+        Debug.DrawLine(new Vector3(ls.p0.x, 0f, ls.p0.y), new Vector3(ls.p1.x, 0f, ls.p1.y), Color.black);
+      }
+#endif
     }
   }
 }
