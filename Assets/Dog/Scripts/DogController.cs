@@ -119,8 +119,20 @@ public class DogController : MonoBehaviour
 
   private bool IsVisible(SheepController sc)
   {
+    // experimental: test for visibility
     Vector3 toSc = sc.transform.position - transform.position;
-    float cos = Vector3.Dot(transform.forward, toSc);
+#if false
+    RaycastHit hit;
+    Vector3 toCm = sc.GetComponent<Rigidbody>().worldCenterOfMass - GetComponent<Rigidbody>().worldCenterOfMass;
+    if (Physics.Raycast(GetComponent<Rigidbody>().worldCenterOfMass + .5f*toCm.normalized, toCm.normalized, out hit, toCm.magnitude - 1f))
+    {
+//      Debug.DrawRay(GetComponent<Rigidbody>().worldCenterOfMass, toCm.normalized * hit.distance, Color.red);
+    }
+    else
+    {
+      Debug.DrawRay(GetComponent<Rigidbody>().worldCenterOfMass, toCm, Color.white);
+    }
+#endif
     float cos = Vector3.Dot(transform.forward, toSc.normalized);
     return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
@@ -141,8 +153,37 @@ public class DogController : MonoBehaviour
     { // localized perception
       sheepList = sheepList.Where(sheep => IsVisible(sheep)).ToList();
 
+#if true // experimental: exlude visually occludded sheep
       sheepList.Sort(new ByDistanceFrom(transform.position));
-      sheepList = sheepList.GetRange(0, Mathf.Min(ns, sheepList.Count));
+      List<int> hidden = new List<int>();
+      for (int i = 0; i < sheepList.Count; i++)
+      {
+        Vector3 toSc = sheepList[i].transform.position - transform.position;
+        float dcos = Mathf.Atan2(.5f*sheepList[i].transform.localScale.x, toSc.magnitude);
+        float cos = Mathf.Acos(Vector3.Dot(transform.forward, toSc.normalized));
+        for (int j = i+1; j < sheepList.Count; j++)
+        {
+          if (hidden.Exists(k => k == sheepList[j].id)) continue; // skip those already hidden
+
+          Vector3 toSc2 = sheepList[j].transform.position - transform.position;
+          float dcos2 = Mathf.Atan2(.5f*sheepList[j].transform.localScale.x, toSc2.magnitude);
+          float cos2 = Mathf.Acos(Vector3.Dot(transform.forward, toSc2.normalized));
+
+          float visible = Mathf.Max(0, Mathf.Min(cos - dcos, cos2 + dcos2) - (cos2 - dcos2));
+          visible += Mathf.Max(0, (cos2 + dcos2) - Mathf.Max(cos2 - dcos2, cos + dcos));
+          if (visible/dcos2 <= 1) hidden.Add(sheepList[j].id);
+        }
+      }
+      for (int i = 0; i < sheepList.Count; i++)
+      {
+        if (!hidden.Exists(j => j == sheepList[i].id))
+          Debug.DrawRay(transform.position, sheepList[i].transform.position - transform.position, Color.white);
+      }
+
+      sheepList = sheepList.Where(sheep => !hidden.Exists(id => id == sheep.id)).ToList();
+#else
+     //sheepList = sheepList.GetRange(0, Mathf.Min(ns, sheepList.Count));
+#endif
     }
 
     // compute CM of sheep
@@ -163,6 +204,7 @@ public class DogController : MonoBehaviour
     float md_ds = Mathf.Infinity;
     SheepController sheep_c = new SheepController();
     float Md_sC = 0;
+    float nnd = 0; // mean nnd
     foreach (SheepController sheep in sheepList)
     {
       // distance from CM
@@ -176,7 +218,17 @@ public class DogController : MonoBehaviour
       // distance from dog
       float d_ds = (sheep.transform.position - transform.position).magnitude;
       md_ds = Mathf.Min(md_ds, d_ds);
+
+      float nn = Mathf.Infinity;
+      foreach (SheepController sc in sheepList)
+      {
+        if (sc.id == sheep.id) continue;
+        nn = Mathf.Min(nn, (sheep.transform.position - sc.transform.position).magnitude);
+      }
+      nnd += nn;
     }
+    nnd /= sheepList.Count;
+    ro = nnd;
 
     // if too close to any sheep stop and wait
     if (md_ds < rs)
