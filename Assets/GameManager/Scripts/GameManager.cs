@@ -98,6 +98,9 @@ public class GameManager : MonoBehaviour
         i++;
       }
     }
+    // remove spawn areas
+    foreach (GameObject area in GameObject.FindGameObjectsWithTag("SpawnArea"))
+      GameObject.Destroy(area);
   }
 
   public void Quit()

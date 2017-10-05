@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4724203322670192}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.RearLegBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34,7 +34,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4457679010956384}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.BottomEarBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -49,7 +49,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4889910168893080}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.BottomEarBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -64,7 +64,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4720042773653566}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TopHeadBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81,7 +81,7 @@ GameObject:
   - component: {fileID: 4863737388435802}
   - component: {fileID: 33833123046072054}
   - component: {fileID: 23259720827122554}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.035
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -98,7 +98,7 @@ GameObject:
   - component: {fileID: 4814509597118012}
   - component: {fileID: 33557185185060366}
   - component: {fileID: 23611137876805750}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.016
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -115,7 +115,7 @@ GameObject:
   - component: {fileID: 4566478611560156}
   - component: {fileID: 33929164013456680}
   - component: {fileID: 23945164135061432}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.032
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4954342295841744}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.PupilBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -145,7 +145,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4213440285396372}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HairBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,7 +160,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4120290706661718}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TailBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 4992176189394100}
   - component: {fileID: 33033297934792428}
   - component: {fileID: 23396403451951756}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.031
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,7 +194,7 @@ GameObject:
   - component: {fileID: 4605791162449614}
   - component: {fileID: 33068069341872402}
   - component: {fileID: 23366856084800276}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.036
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -211,7 +211,7 @@ GameObject:
   - component: {fileID: 4563803265625302}
   - component: {fileID: 33886058013306054}
   - component: {fileID: 23578461208614790}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -227,7 +227,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4236885396433934}
   - component: {fileID: 137044696904390842}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.028
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -242,7 +242,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4533876636937128}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.PupilBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,7 +259,7 @@ GameObject:
   - component: {fileID: 4540545904127198}
   - component: {fileID: 33755735545392884}
   - component: {fileID: 23089770765374562}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -274,7 +274,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4379844505469054}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.BottomEarBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -289,7 +289,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4099181655942564}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.RearLegBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304,7 +304,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4445658958560100}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.FrontLegBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -321,7 +321,7 @@ GameObject:
   - component: {fileID: 4921052264298590}
   - component: {fileID: 33990605844569352}
   - component: {fileID: 23049253220813288}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.034
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -336,7 +336,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4799720030717148}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.PupilBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -351,7 +351,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4406591953151868}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.TopEarBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -366,7 +366,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4439506833814600}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.FrontLegBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -381,7 +381,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4976280577414290}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.PupilBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -396,7 +396,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4767792890792612}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TailBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -413,7 +413,7 @@ GameObject:
   - component: {fileID: 4413626047397034}
   - component: {fileID: 33996720521208934}
   - component: {fileID: 23743161687365670}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -428,7 +428,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4746766779759818}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.TopEarBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -443,7 +443,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4198263824977334}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: NeckBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -458,7 +458,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4919402491013286}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HeadBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -473,7 +473,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4415339245119284}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.EyeBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -488,7 +488,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4392274828988414}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BodyBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -503,7 +503,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4441989836927810}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.FrontLegBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -519,7 +519,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4661062576129624}
   - component: {fileID: 95455838849230968}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AnimatedLowPolySheep
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -536,7 +536,7 @@ GameObject:
   - component: {fileID: 4633096289728180}
   - component: {fileID: 33987057944204986}
   - component: {fileID: 23361601567991188}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Icosphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -553,7 +553,7 @@ GameObject:
   - component: {fileID: 4950583653792732}
   - component: {fileID: 33136489573566768}
   - component: {fileID: 23448965999185828}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -570,7 +570,7 @@ GameObject:
   - component: {fileID: 4738800188571678}
   - component: {fileID: 33695007997415898}
   - component: {fileID: 23781051091084192}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -588,7 +588,7 @@ GameObject:
   - component: {fileID: 114176217931919078}
   - component: {fileID: 54879943810880854}
   - component: {fileID: 136102859657276618}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SheepPrefab
   m_TagString: Sheep
   m_Icon: {fileID: 0}
@@ -605,7 +605,7 @@ GameObject:
   - component: {fileID: 4765362978120806}
   - component: {fileID: 33862125434777322}
   - component: {fileID: 23254273699321594}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -620,7 +620,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4727358528014318}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -637,7 +637,7 @@ GameObject:
   - component: {fileID: 4016747611735378}
   - component: {fileID: 33610624416695466}
   - component: {fileID: 23137399014506436}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.029
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -654,7 +654,7 @@ GameObject:
   - component: {fileID: 4059182966039222}
   - component: {fileID: 33499389208869612}
   - component: {fileID: 23546772560542296}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.037
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -671,7 +671,7 @@ GameObject:
   - component: {fileID: 4171738137429870}
   - component: {fileID: 33266100442096918}
   - component: {fileID: 23564771522676524}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.030
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -688,7 +688,7 @@ GameObject:
   - component: {fileID: 4681453561040968}
   - component: {fileID: 33913246578769326}
   - component: {fileID: 23503438817638708}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -703,7 +703,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4511856673425886}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HairBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -720,7 +720,7 @@ GameObject:
   - component: {fileID: 4117858332513084}
   - component: {fileID: 33757081425621818}
   - component: {fileID: 23269387330724666}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -736,7 +736,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4393853593554830}
   - component: {fileID: 137489833562648142}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.033
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -751,7 +751,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4295302030081966}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.BottomEarBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -766,7 +766,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4965144091325850}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.EyeBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -781,7 +781,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4343474310915632}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: R.RearLegBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -798,7 +798,7 @@ GameObject:
   - component: {fileID: 4947139512163944}
   - component: {fileID: 33717177178924182}
   - component: {fileID: 23440534394342734}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere.017
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -813,7 +813,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4888340549161570}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.RearLegBone_end
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -828,7 +828,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4890158408333654}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: HeadBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -843,7 +843,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4615651862743406}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: LowPolySheep
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -858,7 +858,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4845865869752784}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: L.FrontLegBone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2417,6 +2417,7 @@ MonoBehaviour:
   - {fileID: 137044696904390842}
   fenceRepulsion2: 0
   dogRepulsion2: 0
+  nearestDog: 0
   r_o2: 0
   metricNeighbours: []
   topologicNeighbours: []

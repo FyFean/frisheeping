@@ -121,6 +121,7 @@ public class DogController : MonoBehaviour
   {
     Vector3 toSc = sc.transform.position - transform.position;
     float cos = Vector3.Dot(transform.forward, toSc);
+    float cos = Vector3.Dot(transform.forward, toSc.normalized);
     return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
 
@@ -210,6 +211,23 @@ public class DogController : MonoBehaviour
 
       Debug.DrawLine(CM + f_N*r, CM + f_N*r1, color);
     }
+
+#if true
+    foreach (SheepController sheep in sheepList)
+    {
+      prec = 36;
+      color = new Color(1f, 0f, 0f, 1f);
+      for (int i = 0; i < prec; i++)
+      {
+        float phi = 2f * Mathf.PI * i / prec;
+        Vector3 r = new Vector3(Mathf.Cos(phi), 0f, Mathf.Sin(phi));
+        float phi1 = 2f * Mathf.PI * (i + 1) / prec;
+        Vector3 r1 = new Vector3(Mathf.Cos(phi1), 0f, Mathf.Sin(phi1));
+
+        Debug.DrawLine(sheep.transform.position + .5f * r, sheep.transform.position + .5f * r1, color);
+      }
+    }
+#endif
 
     // if all agents in a single compact group, collect them
     if (Md_sC < f_N)

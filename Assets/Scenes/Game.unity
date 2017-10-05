@@ -29583,7 +29583,7 @@ GameObject:
   - component: {fileID: 620293457}
   m_Layer: 8
   m_Name: Area3
-  m_TagString: Untagged
+  m_TagString: SpawnArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -50479,7 +50479,7 @@ MonoBehaviour:
   rw: 9
   rr: 13.5
   ns: 20
-  blindAngle: 1.0471976
+  blindAngle: 60
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -57469,7 +57469,7 @@ GameObject:
   - component: {fileID: 1227109244}
   m_Layer: 8
   m_Name: Area2
-  m_TagString: Untagged
+  m_TagString: SpawnArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -73191,7 +73191,7 @@ GameObject:
   - component: {fileID: 1591703832}
   m_Layer: 8
   m_Name: Area4
-  m_TagString: Untagged
+  m_TagString: SpawnArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -95328,7 +95328,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1994702332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99894,7 +99894,7 @@ GameObject:
   - component: {fileID: 2107179200}
   m_Layer: 8
   m_Name: Area1
-  m_TagString: Untagged
+  m_TagString: SpawnArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
