@@ -48,10 +48,11 @@ public class SheepController : MonoBehaviour
 
   [HideInInspector]
   public float dogRepulsion2;
+  public float nearestDog;
 
   // neighbour interaction
-  private float r_o = 2.0f; // original 1.0f
-  private float r_e = 2.0f; // original 1.0f
+  private float r_o = 1.0f; // original 1.0f
+  private float r_e = 1.0f; // original 1.0f
   [HideInInspector]
   public float r_o2;
 
@@ -66,7 +67,7 @@ public class SheepController : MonoBehaviour
   private float eta = 0.13f; // original 0.13f
 
   // beta - cohesion factor
-  private float beta = .8f;//3.0f; // original 0.8f
+  private float beta = 3.0f;//3.0f; // original 0.8f
 
   // alpha, delta, transition parameters
   private float alpha = 15.0f;
@@ -396,8 +397,8 @@ public class SheepController : MonoBehaviour
         p_ri = 1 - Mathf.Exp(-p_ri * dt);
       }
 
-      if (d_i < r_o)
-      { // if dog enters interaction range (separation range) start running
+      if (d_i < r_o) //GM.d_S)
+      { // if dog enters safe range (range when stop) start running
         p_ri = 0f;
         p_iwr = 1f;
       }
@@ -451,7 +452,6 @@ public class SheepController : MonoBehaviour
     // declarations
     Vector3 e_ij;
     float f_ij, d_ij;
-    float closestDC = Mathf.Infinity;
 
     // dog repulsion
     foreach (DogController DC in dogNeighbours)
@@ -479,7 +479,6 @@ public class SheepController : MonoBehaviour
       // TODO: intensify repulsion if dog is going streight for me
       f_ij = strongDogRepulsion / d_ij;
       desiredThetaVector += dogWeight * f_ij * -e_ij.normalized;
-      closestDC = Mathf.Min(closestDC, d_ij);
     }
 
     Vector3 closestPoint;
@@ -551,13 +550,13 @@ public class SheepController : MonoBehaviour
           e_ij = neighbour.transform.position - transform.position;
           d_ij = e_ij.magnitude;
 
-          //if (d_ij > closestDC) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
+          if (d_ij > nearestDog) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
 
           if (neighbour.sheepState == Enums.SheepState.running)
             desiredThetaVector += neighbour.transform.forward;
 
           f_ij = Mathf.Min(1.0f, (d_ij - r_e) / r_e);
-          desiredThetaVector += beta * f_ij * e_ij.normalized;
+          desiredThetaVector += beta * ((nearestDog < strongDogRepulsion) ? .5f : 1f) * f_ij * e_ij.normalized; // helps to reduce beta ((nearestDog < strongDogRepulsion)?.5f:1f) as sheep become more aligned when running and less random
           topologicNeighboursCount++;
         }
 

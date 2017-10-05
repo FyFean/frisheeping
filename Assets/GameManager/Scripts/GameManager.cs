@@ -166,14 +166,17 @@ public class GameManager : MonoBehaviour
           points.Add(new Vector2f(sheep.transform.position.x, sheep.transform.position.z, sheep.id));
 
           // dogs
+          float ndc = Mathf.Infinity; // nearest dog
           foreach (DogController DC in dogs)
           {
+            ndc = Mathf.Min(ndc, (sheep.transform.position - DC.transform.position).sqrMagnitude);
             if ((sheep.transform.position - DC.transform.position).sqrMagnitude < sheep.dogRepulsion2)
               dogNeighbours.Add(DC);
           }
 
           // perform updates by swap to prevent empty lists due to asynchronous execution
           sheep.dogNeighbours = dogNeighbours;
+          sheep.nearestDog = Mathf.Sqrt(ndc);
         }
       }
 
