@@ -33,13 +33,14 @@ public class GameManager : MonoBehaviour
   private float minSheepSize = .7f;
   public float d_R = 31.6f;
   public float d_S = 6.3f;
+  public bool Strombom = false;
 
   // list of sheep
   [HideInInspector]
   public List<SheepController> sheepList = new List<SheepController>();
 
   // list of dogs
-  private List<DogController> dogs = new List<DogController>();
+  public List<DogController> dogList = new List<DogController>();
 
   // fences
   [Header("Fence")]
@@ -101,6 +102,9 @@ public class GameManager : MonoBehaviour
     // remove spawn areas
     foreach (GameObject area in GameObject.FindGameObjectsWithTag("SpawnArea"))
       GameObject.Destroy(area);
+
+    // find dogs
+    dogList = new List<DogController>(FindObjectsOfType<DogController>());
   }
 
   public void Quit()
@@ -148,9 +152,6 @@ public class GameManager : MonoBehaviour
     neighboursTimer -= Time.deltaTime;
     if (neighboursTimer < 0)
     {
-      // find dogs
-      dogs = new List<DogController>(FindObjectsOfType<DogController>());
-
       neighboursTimer = neighboursUpdateInterval;
 
       List<Vector2f> points = new List<Vector2f>();
@@ -167,16 +168,16 @@ public class GameManager : MonoBehaviour
 
           // dogs
           float ndc = Mathf.Infinity; // nearest dog
-          foreach (DogController DC in dogs)
+          foreach (DogController dog in dogList)
           {
-            ndc = Mathf.Min(ndc, (sheep.transform.position - DC.transform.position).sqrMagnitude);
-            if ((sheep.transform.position - DC.transform.position).sqrMagnitude < sheep.dogRepulsion2)
-              dogNeighbours.Add(DC);
+            ndc = Mathf.Min(ndc, (sheep.transform.position - dog.transform.position).sqrMagnitude);
+            if ((sheep.transform.position - dog.transform.position).sqrMagnitude < sheep.dogRepulsion2)
+              dogNeighbours.Add(dog);
           }
 
           // perform updates by swap to prevent empty lists due to asynchronous execution
           sheep.dogNeighbours = dogNeighbours;
-          sheep.nearestDog = Mathf.Sqrt(ndc);
+          sheep.nearestDogDistance = Mathf.Sqrt(ndc);
         }
       }
 

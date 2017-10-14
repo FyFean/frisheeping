@@ -2,6 +2,22 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+
+public class ByDistanceFrom : IComparer<SheepController>
+{
+  public Vector3 position { get; set; }
+  public ByDistanceFrom(Vector3 pos) { position = pos; }
+  public int Compare(SheepController sc1, SheepController sc2)
+  {
+    float dsc1 = (sc1.transform.position - position).sqrMagnitude;
+    float dsc2 = (sc2.transform.position - position).sqrMagnitude;
+
+    if (dsc1 > dsc2) return 1;
+    if (dsc1 < dsc2) return -1;
+    return 0;
+  }
+}
 
 public class SheepController : MonoBehaviour
 {
@@ -48,11 +64,13 @@ public class SheepController : MonoBehaviour
 
   [HideInInspector]
   public float dogRepulsion2;
-  public float nearestDog;
+  public float nearestDogDistance;
 
   // neighbour interaction
   private float r_o = 1.0f; // original 1.0f
   private float r_e = 1.0f; // original 1.0f
+  public int ns = 8; // experimental: interact with maximally ns neighbours (cognitive limit)
+  private float blindAngle = 0f;
   [HideInInspector]
   public float r_o2;
 
@@ -212,25 +230,38 @@ public class SheepController : MonoBehaviour
     drivesTimer -= Time.deltaTime;
     stateTimer -= Time.deltaTime;
 
-    // neighbours are needed both for state and drives updates
-    if (stateTimer < 0 || drivesTimer < 0)
-      NeighboursUpdate();
-
-    // state update
-    if (stateTimer < 0)
+    if (GM.Strombom)
     {
-      UpdateState();
-      stateTimer = stateUpdateInterval;
+      // drives update
+      if (drivesTimer < 0)
+      {
+        StrombomUpdate();
+
+        drivesTimer = drivesUpdateInterval;
+      }
     }
-
-    // drives update
-    if (drivesTimer < 0)
+    else
     {
-      // only change speed and heading if not idle
-      if (sheepState == Enums.SheepState.walking || sheepState == Enums.SheepState.running)
-        DrivesUpdate();
+      // neighbours are needed both for state and drives updates
+      if (stateTimer < 0 || drivesTimer < 0)
+        NeighboursUpdate();
 
-      drivesTimer = drivesUpdateInterval;
+      // state update
+      if (stateTimer < 0)
+      {
+        UpdateState();
+        stateTimer = stateUpdateInterval;
+      }
+
+      // drives update
+      if (drivesTimer < 0)
+      {
+        // only change speed and heading if not idle
+        if (sheepState == Enums.SheepState.walking || sheepState == Enums.SheepState.running)
+          DrivesUpdate();
+
+        drivesTimer = drivesUpdateInterval;
+      }
     }
     /* end of behaviour logic */
 
@@ -256,7 +287,7 @@ public class SheepController : MonoBehaviour
     anim.SetBool("IsIdle", sheepState == Enums.SheepState.idle);
     anim.SetBool("IsRunning", sheepState == Enums.SheepState.running);
 
-#if false
+#if true
     if (UnityEditor.Selection.activeGameObject.GetComponent<SheepController>().id == id)
     {
       int prec = 36;
@@ -272,9 +303,26 @@ public class SheepController : MonoBehaviour
         Debug.DrawLine(transform.position + l_i * r, transform.position + l_i * r1, new Color(1f, 0f, 0f, 1f));
         Debug.DrawLine(transform.position + d_R * r, transform.position + d_R * r1, new Color(0f, 1f, 0f, 1f));
         Debug.DrawLine(transform.position + d_S * r, transform.position + d_S * r1, new Color(0f, 0f, 0f, 1f));
+
+        foreach (SheepController s in metricNeighbours)
+          Debug.DrawLine(s.transform.position + .5f * r, s.transform.position + .5f * r1, new Color(1f, 1f, 1f, 1f));
+        foreach (SheepController s in topologicNeighbours)
+          Debug.DrawLine(s.transform.position + .5f * r, s.transform.position + .5f * r1, new Color(0f, 1f, 1f, 1f));
       }
     }
 #endif
+  }
+
+  public bool IsVisible(SheepController sc)
+  {
+#if true // experimental: test occlusion
+    Vector3 toCm = sc.GetComponent<Rigidbody>().worldCenterOfMass - GetComponent<Rigidbody>().worldCenterOfMass;
+    bool hit = Physics.Raycast(GetComponent<Rigidbody>().worldCenterOfMass + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
+    if (hit) return false;
+#endif
+    Vector3 toSc = sc.transform.position - transform.position;
+    float cos = Vector3.Dot(transform.forward, toSc.normalized);
+    return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
 
   void NeighboursUpdate()
@@ -520,7 +568,7 @@ public class SheepController : MonoBehaviour
     }
 
     // interactions only if no dogs
-//    if (dogNeighbours.Count == 0)
+    //    if (dogNeighbours.Count == 0)
     {
       if (sheepState == Enums.SheepState.walking)
       {
@@ -550,13 +598,13 @@ public class SheepController : MonoBehaviour
           e_ij = neighbour.transform.position - transform.position;
           d_ij = e_ij.magnitude;
 
-          if (d_ij > nearestDog) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
+          if (d_ij > nearestDogDistance) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
 
           if (neighbour.sheepState == Enums.SheepState.running)
             desiredThetaVector += neighbour.transform.forward;
 
           f_ij = Mathf.Min(1.0f, (d_ij - r_e) / r_e);
-          desiredThetaVector += beta * ((nearestDog < strongDogRepulsion) ? .5f : 1f) * f_ij * e_ij.normalized; // helps to reduce beta ((nearestDog < strongDogRepulsion)?.5f:1f) as sheep become more aligned when running and less random
+          desiredThetaVector += beta * ((nearestDogDistance < strongDogRepulsion) ? .5f : 1f) * f_ij * e_ij.normalized; // helps to reduce beta ((nearestDogDistance < strongDogRepulsion)?.5f:1f) as sheep become more aligned when running and less random
           topologicNeighboursCount++;
         }
 
@@ -574,5 +622,82 @@ public class SheepController : MonoBehaviour
 
     // extract desired heading
     desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
+  }
+
+  void StrombomUpdate()
+  {
+    // desired heading in vector form
+    Vector3 desiredThetaVector = new Vector3();
+
+    float rs = 32.5f;
+    float ra = 2f;
+    int n = 8;
+
+    List<DogController> dogs = new List<DogController>(GM.dogList).Where(dog => (dog.transform.position - transform.position).magnitude < rs).ToList();
+    List<SheepController> sheepNeighbours = new List<SheepController>(GM.sheepList).Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id).ToList();
+    //sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheep.IsVisible(sheepNeighbour)).ToList();
+    sheepNeighbours.Sort(new ByDistanceFrom(transform.position));
+    sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(n, sheepNeighbours.Count));
+
+    if (dogs.Count == 0)
+    {
+      if (Random.Range(.0f, 1.0f) < .05f)
+        sheepState = Enums.SheepState.walking;
+      else
+        sheepState = Enums.SheepState.idle;
+    }
+    else
+      sheepState = Enums.SheepState.running;
+
+    Vector3 Ra = new Vector3();
+    Vector3 LCM = new Vector3();
+    foreach (SheepController sc in sheepNeighbours)
+    {
+      if ((transform.position - sc.transform.position).magnitude < ra)
+        Ra += (transform.position - sc.transform.position).normalized;
+      LCM += sc.transform.position;
+    }
+    if (sheepNeighbours.Count > 0)
+      LCM = LCM / sheepNeighbours.Count;
+    else
+      LCM = transform.position;
+
+    Vector3 Rs = new Vector3();
+    Vector3 Ci = new Vector3();
+    foreach (DogController dc in dogs)
+    {
+      Rs += transform.position - dc.transform.position;
+      Ci += LCM - transform.position;
+    }
+
+    float e = Random.Range(-Mathf.PI, Mathf.PI);
+    desiredThetaVector = .5f * transform.forward + 1.05f * Ci.normalized + 2f * Ra.normalized + 1f * Rs.normalized + .3f * new Vector3(Mathf.Cos(e), 0f, Mathf.Sin(e));
+
+    // fences repulsion
+    foreach (Collider fenceCollider in GM.fenceColliders)
+    {
+      // get dist
+      Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(transform.position);
+      if ((transform.position - closestPoint).sqrMagnitude < fenceRepulsion2)
+      {
+        Vector3 e_ij = closestPoint - transform.position;
+        float d_ij = e_ij.magnitude;
+        // weak repulsion
+        float dot = Vector3.Dot(e_ij.normalized, transform.forward);
+        Vector3 s_f = transform.forward - (dot * e_ij);
+        desiredThetaVector += s_f * fenceWeight;
+
+        if (sheepState == Enums.SheepState.running)
+        {
+          float f_ij = fenceRepulsion / d_ij;
+          desiredThetaVector += fenceWeight * f_ij * -e_ij.normalized;
+        }
+      }
+    }
+
+    // extract desired heading
+    desiredTheta = Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) * Mathf.Rad2Deg;
+
+    SetSpeed();
   }
 }
