@@ -5,14 +5,7 @@ using System.Linq;
 
 public class DogController : MonoBehaviour
 {
-  public bool Strombom = false;
-  public bool Local = false;
-  public float ro = 1.5f;// length equal to SheepController::r_o 
-  public float rs = 3 * 1.5f;// length at which dog stops 3ro
-  public float rw = 6 * 1.5f;// length at which dog starts walking
-  public float rr = 9 * 1.5f;// length at which dog starts running
-  public int ns = 20; // size of local subgroups
-  public float blindAngle = 60f;
+  public int id;
 
   // state
   [HideInInspector]
@@ -30,15 +23,11 @@ public class DogController : MonoBehaviour
   public Animator anim;
 
   // Movement parameters
-  private float maxSpeed = 10.0f;
-  private float minSpeed = -3.0f;
   private float desiredV = .0f;
   private float v;
-  private float maxSpeedChange = 1.0f/.016f;
 
   private float theta;
   private float desiredTheta = .0f;
-  private float maxTurn = 360f; // in deg per second
 
   // animation bools
   private bool turningLeft = false;
@@ -63,8 +52,8 @@ public class DogController : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    if (Strombom)
-      BehaviourLogic();
+    if (GM.StrombomDogs)
+      BehaviourLogicStrombom();
     else
       Controls();
 
@@ -75,34 +64,34 @@ public class DogController : MonoBehaviour
   {
     if(Input.GetKey(KeyCode.W))
     {
-      desiredV += maxSpeedChange * Time.deltaTime;
+      desiredV += GM.dogMaxSpeedChange * Time.deltaTime;
     }
     else if (Input.GetKey(KeyCode.S))
     {
-      desiredV -= maxSpeedChange * Time.deltaTime;
+      desiredV -= GM.dogMaxSpeedChange * Time.deltaTime;
     }
     else
     {
-      desiredV = Mathf.MoveTowards(desiredV, 0, maxSpeedChange / 10f); 
+      desiredV = Mathf.MoveTowards(desiredV, 0, GM.dogMaxSpeedChange / 10f); 
     }
 
     if (Input.GetKey(KeyCode.A))
     {
-      desiredTheta += maxTurn * Time.deltaTime;
+      desiredTheta += GM.dogMaxTurn * Time.deltaTime;
     }
     else if (Input.GetKey(KeyCode.D))
     {
-      desiredTheta -= maxTurn * Time.deltaTime;
+      desiredTheta -= GM.dogMaxTurn * Time.deltaTime;
     }
     else
     {
-      desiredTheta = theta + Mathf.MoveTowardsAngle((desiredTheta - theta), 0, maxTurn  / 10f);
+      desiredTheta = theta + Mathf.MoveTowardsAngle((desiredTheta - theta), 0, GM.dogMaxTurn / 10f);
       // ensure angle remains in [-180,180)
       desiredTheta = (desiredTheta + 180f) % 360f - 180f;
     }
   }
 
-  private bool IsVisible(SheepController sc)
+  private bool IsVisible(SheepController sc, float blindAngle)
   {
 #if false // experimental: test occlusion
     Vector3 toCm = sc.GetComponent<Rigidbody>().worldCenterOfMass - GetComponent<Rigidbody>().worldCenterOfMass;
@@ -114,7 +103,7 @@ public class DogController : MonoBehaviour
     return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
 
-  void BehaviourLogic()
+  void BehaviourLogicStrombom()
   {
     // desired heading in vector form
     Vector3 desiredThetaVector = new Vector3();
@@ -125,10 +114,11 @@ public class DogController : MonoBehaviour
     /* behavour logic */
 
     // get only live sheep
-    List<SheepController> sheepList = new List<SheepController>(GM.sheepList).Where(sheep => !sheep.dead).ToList();
-    if (Local)
+    List<SheepController> sheep = new List<SheepController>(GM.sheepList).Where(sc => !sc.dead).ToList();
+    if (GM.DogsParametersStrombom.local)
     { // localized perception
-      sheepList = sheepList.Where(sheep => IsVisible(sheep)).ToList();
+      if (GM.DogsParametersStrombom.occlusion)
+        sheep = sheep.Where(sc => IsVisible(sc, GM.DogsParametersStrombom.blindAngle)).ToList();
 
 #if false // experimental: exlude visually occludded sheep
       sheepList.Sort(new ByDistanceFrom(transform.position));
@@ -160,17 +150,17 @@ public class DogController : MonoBehaviour
       sheepList = sheepList.Where(sheep => !hidden.Exists(id => id == sheep.id)).ToList();
 #endif
 #if true // take into account cognitive limits track max ns nearest neighbours
-      sheepList.Sort(new ByDistanceFrom(transform.position));
-      sheepList = sheepList.GetRange(0, Mathf.Min(ns, sheepList.Count)); 
+      sheep.Sort(new ByDistanceFrom(transform.position));
+      sheep = sheep.GetRange(0, Mathf.Min(GM.DogsParametersStrombom.ns, sheep.Count)); 
 #endif
     }
 
     // compute CM of sheep
     Vector3 CM = new Vector3();
-    foreach (SheepController sheep in sheepList)
-      CM += sheep.transform.position;
-    if (sheepList.Count > 0)
-      CM /= (float)sheepList.Count;
+    foreach (SheepController sc in sheep)
+      CM += sc.transform.position;
+    if (sheep.Count > 0)
+      CM /= (float)sheep.Count;
 
     // draw CM
     Vector3 X = new Vector3(1, 0, 0);
@@ -181,87 +171,75 @@ public class DogController : MonoBehaviour
 
     // find distance of sheep that is nearest to the dog & distance of sheep furthest from CM
     float md_ds = Mathf.Infinity;
-    SheepController sheep_c = new SheepController();
+    SheepController sheep_c = null; // sheep furthest from CM
     float Md_sC = 0;
-    float nnd = 0; // mean nnd
-    foreach (SheepController sheep in sheepList)
+
+    foreach (SheepController sc in sheep)
     {
       // distance from CM
-      float d_sC = (CM - sheep.transform.position).magnitude;
+      float d_sC = (CM - sc.transform.position).magnitude;
       if (d_sC > Md_sC)
       {
         Md_sC = d_sC;
-        sheep_c = sheep;
+        sheep_c = sc;
       }
 
       // distance from dog
-      float d_ds = (sheep.transform.position - transform.position).magnitude;
+      float d_ds = (sc.transform.position - transform.position).magnitude;
       md_ds = Mathf.Min(md_ds, d_ds);
+    }
 
-#if false
+    float ro = 0; // mean nnd
+    if (GM.StrombomSheep)
+      ro = GM.SheepParametersStrombom.r_a;
+    else
+      ro = GM.SheepParametersGinelli.r_0;
+
+#if false // aproximate interaction distance through nearest neigbour distance
+    foreach (SheepController sheep in sheepList)
+    {
       float nn = Mathf.Infinity;
       foreach (SheepController sc in sheepList)
       {
         if (sc.id == sheep.id) continue;
         nn = Mathf.Min(nn, (sheep.transform.position - sc.transform.position).magnitude);
       }
-      nnd += nn;
-#endif
+      ro += nn;
     }
-#if false
-    nnd /= sheepList.Count;
-    ro = nnd;
+    ro /= sheepList.Count;
 #endif
 
+    float r_s = GM.DogsParametersStrombom.r_s * ro; // compute true stopping distance
+    float r_w = GM.DogsParametersStrombom.r_w * ro; // compute true walking distance
+    float r_r = GM.DogsParametersStrombom.r_r * ro; // compute true running distance
+
     // if too close to any sheep stop and wait
-    if (md_ds < rs)
+    if (md_ds < r_s)
     {
       dogState = Enums.DogState.idle;
       desiredV = .0f;
     }
     // if close to any sheep start walking
-    else if (md_ds < rw)
+    else if (md_ds < r_w)
     {
       dogState = Enums.DogState.walking;
-      desiredV = maxSpeed * .5f;
+      desiredV = GM.dogWalkingSpeed;
     }
-    else if (md_ds > rr)
+    else if (md_ds > r_r)
     {
       // default run in current direction
-      desiredV = maxSpeed * .75f;
       dogState = Enums.DogState.running;
+      desiredV = GM.dogRunningSpeed;
     }
 
     // aproximate radius of a circle
-    float f_N = ro*Mathf.Pow(sheepList.Count, 2f / 3f) / 2f;
+    float f_N = ro*Mathf.Pow(sheep.Count, 2f / 3f);
     // draw aprox herd size
-    int prec = 36;
-    color = new Color(1f, 0f, 0f, 1f);
-    for (int i = 0; i < prec;  i++)
-    {
-      float phi = 2f * Mathf.PI * i / prec;
-      Vector3 r = new Vector3(Mathf.Cos(phi), 0f, Mathf.Sin(phi));
-      float phi1 = 2f * Mathf.PI * (i + 1) / prec;
-      Vector3 r1 = new Vector3(Mathf.Cos(phi1), 0f, Mathf.Sin(phi1));
-
-      Debug.DrawLine(CM + f_N*r, CM + f_N*r1, color);
-    }
+    Debug.DrawCircle(CM, f_N, new Color(1f, 0f, 0f, 1f));
 
 #if true
-    foreach (SheepController sheep in sheepList)
-    {
-      prec = 36;
-      color = new Color(1f, 0f, 0f, 1f);
-      for (int i = 0; i < prec; i++)
-      {
-        float phi = 2f * Mathf.PI * i / prec;
-        Vector3 r = new Vector3(Mathf.Cos(phi), 0f, Mathf.Sin(phi));
-        float phi1 = 2f * Mathf.PI * (i + 1) / prec;
-        Vector3 r1 = new Vector3(Mathf.Cos(phi1), 0f, Mathf.Sin(phi1));
-
-        Debug.DrawLine(sheep.transform.position + .5f * r, sheep.transform.position + .5f * r1, color);
-      }
-    }
+    foreach (SheepController sc in sheep)
+      Debug.DrawCircle(sc.transform.position, .5f, new Color(1f, 0f, 0f, 1f));
 #endif
 
     // if all agents in a single compact group, collect them
@@ -270,10 +248,10 @@ public class DogController : MonoBehaviour
       BarnController barn = FindObjectOfType<BarnController>();
 
       // compute position so that the GCM is on a line between the dog and the target
-      Vector3 Pd = CM + (CM - barn.transform.position).normalized * Mathf.Min(ro * Mathf.Sqrt(sheepList.Count), Md_sC);
+      Vector3 Pd = CM + (CM - barn.transform.position).normalized * ro * Mathf.Sqrt(sheep.Count); // Mathf.Min(ro * Mathf.Sqrt(sheep.Count), Md_sC);
       desiredThetaVector = Pd - transform.position;
-      if (desiredThetaVector.magnitude < rw)
-        desiredV = maxSpeed * .5f;
+      if (desiredThetaVector.magnitude > r_w)
+        desiredV = GM.dogRunningSpeed;
 
       color = new Color(0f, 1f, 0f, 1f);
       Debug.DrawRay(Pd - X - Z, 2*X, color);
@@ -303,13 +281,13 @@ public class DogController : MonoBehaviour
   void DogMovement()
   {
     // compute angular change based on max angular velocity and desiredTheta
-    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, maxTurn * Time.deltaTime);
+    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.dogMaxTurn * Time.deltaTime);
     // ensure angle remains in [-180,180)
     theta = (theta + 180f) % 360f - 180f;
     // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
-    v = Mathf.MoveTowards(v, desiredV, maxSpeedChange * Time.deltaTime);
+    v = Mathf.MoveTowards(v, desiredV, GM.dogMaxSpeedChange * Time.deltaTime);
     // ensure speed remains in [minSpeed, maxSpeed]
-    v = Mathf.Clamp(v, minSpeed, maxSpeed);
+    v = Mathf.Clamp(v, GM.dogMinSpeed, GM.dogMaxSpeed);
 
     // compute new forward direction
     Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
@@ -320,6 +298,18 @@ public class DogController : MonoBehaviour
 
     transform.position = newPosition;
     transform.forward = newForward;
+
+    // draw dogRepulsion radius
+    if (GM.StrombomSheep)
+    {
+      Debug.DrawCircle(transform.position, GM.SheepParametersStrombom.r_s, new Color(1f, 1f, 0f, .5f), true);
+      Debug.DrawCircle(transform.position, GM.SheepParametersStrombom.r_sS, new Color(1f, 1f, 0f, 1f));
+    }
+    else
+    {
+      Debug.DrawCircle(transform.position, GM.SheepParametersGinelli.r_s, new Color(1f, 1f, 0f, .5f), true);
+      Debug.DrawCircle(transform.position, GM.SheepParametersGinelli.r_sS, new Color(1f, 1f, 0f, 1f));
+    }
 
     if (v == .0f)
     {
@@ -333,9 +323,9 @@ public class DogController : MonoBehaviour
     }
 
     // Animation Controller
-    anim.SetBool("IsRunning", v > 8);
+    anim.SetBool("IsRunning", v > 6);
     anim.SetBool("Reverse", v < 0);
-    anim.SetBool("IsWalking", (v > 0 && v <= 8) ||
+    anim.SetBool("IsWalking", (v > 0 && v <= 6) ||
                                turningLeft ||
                                turningRight);
   }
