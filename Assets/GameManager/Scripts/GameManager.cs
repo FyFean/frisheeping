@@ -203,10 +203,6 @@ public class GameManager : MonoBehaviour
     // update
     UpdateNeighbours();
 
-    // comment out to change via inspector
-    SheepParametersGinelli.tau_iwr = sheepCount;
-    SheepParametersGinelli.tau_ri = sheepCount;
-
     // game timer
     gameTimer -= Time.deltaTime;
 
@@ -236,6 +232,11 @@ public class GameManager : MonoBehaviour
 
       if (!StrombomSheep)
       {
+        // comment out to change via inspector
+        SheepParametersGinelli.tau_iwr = sheepCount;
+        SheepParametersGinelli.tau_ri = sheepCount;
+
+
         // todo test with occlusion, cognitive limit and both dogs and sheep in same perception then filter out and merge from T+M dogs 
         List<Vector2f> sheepL = new List<Vector2f>();
         List<Vector2f> dogsL = new List<Vector2f>();
@@ -249,7 +250,7 @@ public class GameManager : MonoBehaviour
         // topologic neighbours - first shell of voronoi neighbours
         Rectf bounds = new Rectf(-60.0f, -65.0f, 120.0f, 110.0f);
         Voronoi voronoi = new Voronoi(sheepL, bounds);
-#if true
+#if false
         Debug.DrawLine(new Vector3(bounds.x, 0, bounds.y), new Vector3(bounds.x + bounds.width, 0, bounds.y));
         Debug.DrawLine(new Vector3(bounds.x + bounds.width, 0, bounds.y), new Vector3(bounds.x + bounds.width, 0, bounds.y + bounds.height));
         Debug.DrawLine(new Vector3(bounds.x + bounds.width, 0, bounds.y + bounds.height), new Vector3(bounds.x, 0, bounds.y + bounds.height));
@@ -288,13 +289,24 @@ public class GameManager : MonoBehaviour
           sc.topologicNeighbours = topologicNeighbours;
           sc.metricNeighbours = metricNeighbours;
 
+          // ignore topologic neighbours further than the closest dog
+//          float l_i = sc.l_i;
+#if false
+          if (dogs.Count > 0)
+          {
+            float ndc = (dogList[dogs[0].id].transform.position - sc.transform.position).magnitude;
+            topologicNeighbours =
+              topologicNeighbours.Where(snt => (snt.transform.position - sc.transform.position).magnitude < ndc).ToList(); //!(snt.sheepState == Enums.SheepState.idle && snt.previousSheepState == Enums.SheepState.running)
+            sc.topologicNeighbours = topologicNeighbours;
+          }
+#endif
           // TODO: metricNeighbours.Where(n => !n.dead && n.sheepState == Enums.SheepState.idle).Count();
-          sc.n_idle = 0;
-          sc.n_walking = 0;
-          sc.m_idle = 0;
-          sc.m_toidle = 0;
-          sc.m_running = 0;
-          sc.l_i = 0f;
+          sc.n_idle = .0f;
+          sc.n_walking = .0f;
+          sc.m_idle = .0f;
+          sc.m_toidle = .0f;
+          sc.m_running = .0f;
+          sc.l_i = .0f;
           // ignore dead/barned sheep
           foreach (SheepController neighbour in sc.metricNeighbours)
           {
@@ -321,10 +333,12 @@ public class GameManager : MonoBehaviour
               case Enums.SheepState.idle:
                 if (neighbour.previousSheepState == Enums.SheepState.running)
                   sc.m_toidle++;
+                  //sc.m_toidle += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of idle sheep with their distance
                 sc.m_idle++;
                 break;
               case Enums.SheepState.running:
                 sc.m_running++;
+                // sc.m_running += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of running sheep with their distance
                 break;
             }
 

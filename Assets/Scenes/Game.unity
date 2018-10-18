@@ -24559,14 +24559,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -35475,14 +35467,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -43158,14 +43142,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -43822,14 +43798,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -45498,14 +45466,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -46125,14 +46085,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -51479,14 +51431,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 60
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -52927,14 +52871,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -68696,14 +68632,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -103687,14 +103615,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  blindAngle: 1.0471976
-  StrombomDogs: 0
-  Local: 0
-  Visibility: 0
-  r_s: 3
-  r_w: 9
-  r_r: 18
-  ns: 20
   dogState: 0
   previousDogState: 0
   controls: 0

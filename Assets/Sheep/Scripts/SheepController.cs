@@ -69,7 +69,7 @@ public class SheepController : MonoBehaviour
 
 
   // Ginelli parameters - overriden by GM
-  public int n_idle = 0, n_walking = 0, m_toidle = 0, m_idle = 0, m_running = 0;
+  public float n_idle = .0f, n_walking = .0f, m_toidle = .0f, m_idle = .0f, m_running = .0f;
   public float l_i = .0f;
 
   // neighbours lists
@@ -97,6 +97,7 @@ public class SheepController : MonoBehaviour
 
     // random state
     sheepState = (Enums.SheepState)Random.Range(0, 3);
+    if (sheepState == Enums.SheepState.running) sheepState = Enums.SheepState.walking;
     previousSheepState = sheepState;
 
     // speed
@@ -279,98 +280,96 @@ public class SheepController : MonoBehaviour
 
     previousSheepState = sheepState;
 
-    float nd = GM.SheepParametersGinelli.r_s * GM.SheepParametersGinelli.r_s; // nearest dog distance
-    // if dog detected switch state differently
-    // if (dogNeighbours.Count > 0)
-    { // this could be coded like piwr & pri the l_i/d_R, d_S/l_i parts, but l_i being the mean distance to the dog(s)
-      // dog repulsion
-      foreach (DogController dog in dogNeighbours)
-      {
-        float dist = (dog.transform.position - transform.position).sqrMagnitude;
-
-#if false // experiment with dogRepulsion not forcing state change
-        // override state and speed
-        // running when dog is close, walking when dog is medium distance away
-        if (dist < strongDogRepulsion)
-          sheepState = Enums.SheepState.running;
-        else if (sheepState != Enums.SheepState.running)
-          sheepState = Enums.SheepState.walking;
-#endif
-        nd = Mathf.Min(nd, dist); 
-      }
-    }
-    // else
+    // increment m_running if dog in strong repulsion zone
+    float d_fear = .0f;
+    float nd = Mathf.Infinity; // nearest dog distance
+    foreach (DogController dog in dogNeighbours)
     {
-      // probabilities
-      float p_iw = (1 + GM.SheepParametersGinelli.alpha * n_walking) / GM.SheepParametersGinelli.tau_iw;
-      p_iw = 1 - Mathf.Exp(-p_iw * dt);
-      float p_wi = (1 + GM.SheepParametersGinelli.alpha * n_idle) / GM.SheepParametersGinelli.tau_wi;
-      p_wi = 1 - Mathf.Exp(-p_wi * dt);
+      float dist = (dog.transform.position - transform.position).magnitude;
+      nd = Mathf.Min(nd, dist);
+      d_fear += Mathf.Pow(Mathf.Max(.0f, 1f - dist / GM.SheepParametersGinelli.r_sS), 2f);
+    }
+    if (dogNeighbours.Count > 0)
+      d_fear /= dogNeighbours.Count;
 
-      float p_iwr = .0f;
-      float p_ri = 1.0f; // since l_i is in the denominator of the eq for p_ri
-      if (l_i > .0f)
-      {
-        float d_R = GM.SheepParametersGinelli.d_R;
-#if true // experiment with dogRepulsion not forcing state change        
-        if (nd < GM.SheepParametersGinelli.r_sS) // feel unsafe much sooner
-          d_R *= .1f;
-        else if (nd < GM.SheepParametersGinelli.r_s) // feel unsafe sooner
-          d_R *= .5f;
+    float d_R = GM.SheepParametersGinelli.d_R;
+    float d_S = GM.SheepParametersGinelli.d_S;
+#if true // experiment with dogRepulsion not forcing state change, could be based also on d_fear        
+    if (nd < GM.SheepParametersGinelli.r_sS) // feel unsafe much sooner
+      d_R *= .25f * Mathf.Pow(nd / GM.SheepParametersGinelli.r_sS, 2f);
+    else if (nd < GM.SheepParametersGinelli.r_s) // feel unsafe sooner
+      d_R *= .25f + .25f * Mathf.Pow((nd - GM.SheepParametersGinelli.r_sS)/(GM.SheepParametersGinelli.r_s - GM.SheepParametersGinelli.r_sS), 2f);
 #endif
-        p_iwr = (1 / GM.SheepParametersGinelli.tau_iwr) * Mathf.Pow((l_i / d_R) * (1 + GM.SheepParametersGinelli.alpha * m_running), GM.SheepParametersGinelli.delta);
-        p_iwr = 1 - Mathf.Exp(-p_iwr * dt);
-
 #if true // experiment with dogRepulsion not forcing state change
-//        if (d_i < strongDogRepulsion) // feel unsafe much sooner
-//          d_S *= .1f;
-//        else if (d_i < dogRepulsion) // feel unsafe sooner
-//          d_S = d_S * .75f;
+    if (nd < GM.SheepParametersGinelli.r_sS) // feel unsafe much sooner
+      d_S *= .25f * Mathf.Pow(nd / GM.SheepParametersGinelli.r_sS, 2f);
+    else if (nd < GM.SheepParametersGinelli.r_s) // feel unsafe sooner
+      d_S *= .25f + .25f * Mathf.Pow((nd - GM.SheepParametersGinelli.r_sS) / (GM.SheepParametersGinelli.r_s - GM.SheepParametersGinelli.r_sS), 2f);
 #endif
-        p_ri = (1 / GM.SheepParametersGinelli.tau_ri) * Mathf.Pow((GM.SheepParametersGinelli.d_S / l_i) * (1 + GM.SheepParametersGinelli.alpha * m_toidle), GM.SheepParametersGinelli.delta);
-        p_ri = 1 - Mathf.Exp(-p_ri * dt);
-      }
+    if (UnityEditor.Selection.activeGameObject != null && UnityEditor.Selection.activeGameObject.GetComponent<SheepController>() != null && UnityEditor.Selection.activeGameObject.GetComponent<SheepController>().id == id)
+    {
+      Debug.DrawCircle(transform.position, l_i, new Color(1f, 1f, 1f, 1f));
+      Debug.DrawCircle(transform.position, d_R, new Color(0f, 0f, 1f, 1f));
+      Debug.DrawCircle(transform.position, d_S, new Color(1f, 0f, 1f, 1f)); 
+      foreach (SheepController snt in topologicNeighbours)
+        Debug.DrawCircle(snt.transform.position, .5f, new Color(1f, 1f, 1f, 1f));
+    }
 
-      if (nd < GM.SheepParametersGinelli.d_S) // r_0
-      { // if dog enters safe range (range when stop) start running
-        p_ri = 0f;
-        p_iwr = 1f;
-      }
+    // probabilities
+    float p_iw = (1 + GM.SheepParametersGinelli.alpha * n_walking) / GM.SheepParametersGinelli.tau_iw;
+    p_iw = 1 - Mathf.Exp(-p_iw * dt);
+    float p_wi = (1 + GM.SheepParametersGinelli.alpha * n_idle) / GM.SheepParametersGinelli.tau_wi;
+    p_wi = 1 - Mathf.Exp(-p_wi * dt);
 
-      // test states
-      float random = .0f;
+    float p_iwr = .0f;
+    float p_ri = 1.0f; // since l_i is in the denominator of the eq for p_ri
+    if (l_i > .0f)
+    {
+      p_iwr = (1 / GM.SheepParametersGinelli.tau_iwr) * Mathf.Pow((l_i / d_R) * (1 + GM.SheepParametersGinelli.alpha * (m_running + d_fear)), GM.SheepParametersGinelli.delta);
+      p_iwr = 1 - Mathf.Exp(-p_iwr * dt);
 
-      // first test the transition between idle and walking and viceversa
-      if (sheepState == Enums.SheepState.idle)
-      {
-        random = Random.Range(.0f, 1.0f);
-        if (random < p_iw)
-          sheepState = Enums.SheepState.walking;
-      }
-      else // added to reflect SheepOptimization code
-      if (sheepState == Enums.SheepState.walking)
-      {
-        random = Random.Range(.0f, 1.0f);
-        if (random < p_wi)
-          sheepState = Enums.SheepState.idle;
-      }
+      p_ri = (1 / GM.SheepParametersGinelli.tau_ri) * Mathf.Pow((d_S / l_i) * (1 + GM.SheepParametersGinelli.alpha * m_toidle), GM.SheepParametersGinelli.delta);
+      p_ri = 1 - Mathf.Exp(-p_ri * dt);
+    }
+    else // no topologic neighbours but dog nearby
+    {
+      p_iwr = .25f + .75f * (1f - Mathf.Pow(nd / GM.SheepParametersGinelli.r_sS, 2f));
+      p_ri = 1f - p_iwr;
+    }
 
-      // second test the transition to running
-      // which has the same rate regardless if you start from walking or idle
-      if (sheepState == Enums.SheepState.idle || sheepState == Enums.SheepState.walking)
-      {
-        random = Random.Range(.0f, 1.0f);
-        if (random < p_iwr)
-          sheepState = Enums.SheepState.running;
-      }
-      //else // added to reflect SheepOptimization code
-      // while testing the transition to running also test the transition from running to standing
-      if (sheepState == Enums.SheepState.running)
-      {
-        random = Random.Range(.0f, 1.0f);
-        if (random < p_ri)
-          sheepState = Enums.SheepState.idle;
-      }
+    // test states
+    float random = .0f;
+
+    // first test the transition between idle and walking and viceversa
+    if (sheepState == Enums.SheepState.idle)
+    {
+      random = Random.Range(.0f, 1.0f);
+      if (random < p_iw)
+        sheepState = Enums.SheepState.walking;
+    }
+    else // added to reflect SheepOptimization code
+    if (sheepState == Enums.SheepState.walking)
+    {
+      random = Random.Range(.0f, 1.0f);
+      if (random < p_wi)
+        sheepState = Enums.SheepState.idle;
+    }
+
+    // second test the transition to running
+    // which has the same rate regardless if you start from walking or idle
+    if (sheepState == Enums.SheepState.idle || sheepState == Enums.SheepState.walking)
+    {
+      random = Random.Range(.0f, 1.0f);
+      if (random < p_iwr)
+        sheepState = Enums.SheepState.running;
+    }
+    // else // added to reflect SheepOptimization code
+    // while testing the transition to running also test the transition from running to standing
+    if (sheepState == Enums.SheepState.running)
+    {
+      random = Random.Range(.0f, 1.0f);
+      if (random < p_ri)
+        sheepState = Enums.SheepState.idle;
     }
 
     SetSpeed();
@@ -388,48 +387,17 @@ public class SheepController : MonoBehaviour
     float f_ij, d_ij;
 
     // dog repulsion regardless of state
+    float ndc = Mathf.Infinity;
     foreach (DogController dog in dogNeighbours)
     {
       e_ij = dog.transform.position - transform.position;
       d_ij = e_ij.magnitude;
 
-      float p_iw = 1f - d_ij / GM.SheepParametersGinelli.r_s;
-      float p_iwr = 1f - Mathf.Min(1f, d_ij / GM.SheepParametersGinelli.r_sS);
-      if (sheepState == Enums.SheepState.idle)
-      {
-        if (Random.Range(.0f, 1.0f) < p_iw)
-        {
-          sheepState = Enums.SheepState.walking;
-          SetSpeed();
-        }
-      }
-      if (sheepState == Enums.SheepState.walking)
-      {
-        if (Random.Range(.0f, 1.0f) < p_iwr)
-        {
-          sheepState = Enums.SheepState.running;
-          SetSpeed();
-        }
-      }
-#if false // sheep fear controlled in UpdateState      
-      // override state and speed
-      // running when dog is close, walking when dog is medium distance away
-      if (e_ij.magnitude < strongDogRepulsion)
-      {
-        sheepState = Enums.SheepState.running;
-        v = v_2;
-      }
-      else
-      {
-        if (sheepState != Enums.SheepState.running)
-        {
-          sheepState = Enums.SheepState.walking;
-          v = v_1;
-        }
-      }
-#endif
-      // TODO: intensify repulsion if dog is going streight for me
+      ndc = Mathf.Min(ndc, d_ij);
+
       f_ij = Mathf.Min(1f, (d_ij - GM.SheepParametersGinelli.r_s) / GM.SheepParametersGinelli.r_s);
+      // TODO: intensify repulsion if dog is going streight for me
+      // f_ij *= Mathf.Max(0f, Vector3.Dot(dog.transform.forward, e_ij.normalized));
       desiredThetaVector += GM.SheepParametersGinelli.rho_s * f_ij * e_ij.normalized;
     }
 
@@ -448,7 +416,7 @@ public class SheepController : MonoBehaviour
           f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersGinelli.r_f) / GM.SheepParametersGinelli.r_f);
           desiredThetaVector += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
 
-#if false // should be handled in state transitions
+#if false // TODO: should be handled in state transitions
           // if walking transition to idle mode the closer to the fence the more likely
           if (sheepState == Enums.SheepState.walking)
             if (Random.Range(.0f, 1.0f) < 1f - (d_ij / GM.SheepParametersGinelli.r_f))
@@ -458,63 +426,63 @@ public class SheepController : MonoBehaviour
       }
     }
 
-    // interactions only if no dogs
-    //    if (dogNeighbours.Count == 0)
+    if (sheepState == Enums.SheepState.walking)
     {
-      if (sheepState == Enums.SheepState.walking)
+      foreach (SheepController neighbour in metricNeighbours)
       {
-        foreach (SheepController neighbour in metricNeighbours)
-        {
-          desiredThetaVector += neighbour.transform.forward;
+        desiredThetaVector += neighbour.transform.forward;
 
-          // ignore separation
-#if true
-          e_ij = neighbour.transform.position - transform.position;
-          d_ij = e_ij.magnitude;
-          f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersGinelli.r_0) / GM.SheepParametersGinelli.r_0); // perform only separation to reflect Ginelli model
-          desiredThetaVector += GM.SheepParametersGinelli.beta * f_ij * e_ij.normalized;
+#if true // include separation
+        e_ij = neighbour.transform.position - transform.position;
+        d_ij = e_ij.magnitude;
+        f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersGinelli.r_0) / GM.SheepParametersGinelli.r_0); // perform only separation to reflect Ginelli model
+        desiredThetaVector += GM.SheepParametersGinelli.beta * f_ij * e_ij.normalized;
 #endif
-        }
-
-        // for sheep with no Metric neighbours set desiredTheta to current forward i.e. no change
-        if (metricNeighbours.Count == 0 && desiredThetaVector.sqrMagnitude == 0)
-          desiredThetaVector += transform.forward;
-
-        // noise
-        eps += Random.Range(-Mathf.PI * GM.SheepParametersGinelli.eta, Mathf.PI * GM.SheepParametersGinelli.eta);
       }
-      else
-      if (sheepState == Enums.SheepState.running)
-      {
-        foreach (SheepController neighbour in topologicNeighbours)
-        {
-          e_ij = neighbour.transform.position - transform.position;
-          d_ij = e_ij.magnitude;
 
-//          if (d_ij > nearestDogDistance) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
-
-          if (neighbour.sheepState == Enums.SheepState.running)
-            desiredThetaVector += neighbour.transform.forward;
-
-          f_ij = Mathf.Min(1.0f, (d_ij - GM.SheepParametersGinelli.r_e) / GM.SheepParametersGinelli.r_e);
-          desiredThetaVector += GM.SheepParametersGinelli.beta * f_ij * e_ij.normalized;
-
-//          desiredThetaVector += beta * ((nearestDogDistance < strongDogRepulsion) ? .5f : 1f) * f_ij * e_ij.normalized; // helps to reduce beta ((nearestDogDistance < strongDogRepulsion)?.5f:1f) as sheep become more aligned when running and less random
-        }
-
-        // for sheep with no Voronoi neighbours set desiredTheta to current forward i.e. no change
-        if (topologicNeighbours.Count == 0 && desiredThetaVector.sqrMagnitude == 0)
-          desiredThetaVector += transform.forward;
-      }
-      else
-      if (sheepState == Enums.SheepState.idle)
-      {
-        // for idle sheep there is no change 
+      // for sheep with no Metric neighbours set desiredTheta to current forward i.e. no change
+      if (metricNeighbours.Count == 0 && desiredThetaVector.sqrMagnitude == 0)
         desiredThetaVector += transform.forward;
 
-        // random noise (grazing while idle)
-        eps += Random.Range(-Mathf.PI * GM.SheepParametersGinelli.eta, Mathf.PI * GM.SheepParametersGinelli.eta);
+      // noise
+      eps += Random.Range(-Mathf.PI * GM.SheepParametersGinelli.eta, Mathf.PI * GM.SheepParametersGinelli.eta);
+    }
+    else
+    if (sheepState == Enums.SheepState.running)
+    {
+      foreach (SheepController neighbour in topologicNeighbours)
+      {
+        e_ij = neighbour.transform.position - transform.position;
+        d_ij = e_ij.magnitude;
+
+//          if (d_ij > ndc) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
+
+        if (neighbour.sheepState == Enums.SheepState.running)
+        { 
+          f_ij = 1f;
+          // reduce influence of neighbours that are furhter away
+          // f_ij *= Mathf.Exp(-Mathf.Max(.0f, d_ij - l_i));
+          // f_ij = Mathf.Max(.0f, 1f - d_ij / l_i); revise
+          desiredThetaVector += f_ij * neighbour.transform.forward;
+        }
+
+        f_ij = Mathf.Min(1.0f, (d_ij - GM.SheepParametersGinelli.r_e) / GM.SheepParametersGinelli.r_e);
+        // f_ij *= Mathf.Exp(-Mathf.Max(.0f, d_ij - l_i)); // reduce influeence of neighbours that are furhter away
+        desiredThetaVector += GM.SheepParametersGinelli.beta * f_ij * e_ij.normalized;
       }
+
+      // for sheep with no Voronoi neighbours set desiredTheta to current forward i.e. no change
+      if (topologicNeighbours.Count == 0 && desiredThetaVector.sqrMagnitude == 0)
+        desiredThetaVector += transform.forward;
+    }
+    else
+    if (sheepState == Enums.SheepState.idle)
+    {
+      // for idle sheep there is no change 
+      desiredThetaVector += transform.forward;
+
+      // random noise (grazing while idle)
+      eps += Random.Range(-Mathf.PI * GM.SheepParametersGinelli.eta, Mathf.PI * GM.SheepParametersGinelli.eta);
     }
 
     // extract desired heading
