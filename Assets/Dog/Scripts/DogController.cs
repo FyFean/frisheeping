@@ -56,7 +56,9 @@ public class DogController : MonoBehaviour
       BehaviourLogicStrombom();
     else
       Controls();
+  }
 
+  void FixedUpdate() {
     DogMovement();
   }
 
