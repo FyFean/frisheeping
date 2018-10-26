@@ -178,7 +178,28 @@ public class SheepController : MonoBehaviour
 #endif
   }
 
-  void Update()
+  private void FixedUpdate() {
+    // compute angular change based on max angular velocity and desiredTheta
+    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.sheepMaxTurn * Time.deltaTime);
+    // ensure angle remains in [-180,180)
+    theta = (theta + 180f) % 360f - 180f;
+
+    // compute new forward direction
+    Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
+
+    // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
+    v = Mathf.MoveTowards(v, desiredV, GM.sheepMaxSpeedChange * Time.deltaTime);
+
+    // update position
+    Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
+    // force ground, to revert coliders making sheep fly
+    newPosition.y = 0f;
+
+    transform.position = newPosition;
+    transform.forward = newForward;
+  }
+
+    void Update()
   {
     /* behavour logic */
     drivesTimer -= Time.deltaTime;
@@ -218,24 +239,6 @@ public class SheepController : MonoBehaviour
       }
     }
     /* end of behaviour logic */
-
-    // compute angular change based on max angular velocity and desiredTheta
-    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.sheepMaxTurn * Time.deltaTime);
-    // ensure angle remains in [-180,180)
-    theta = (theta + 180f) % 360f - 180f;
-    // compute new forward direction
-    Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
-
-    // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
-    v = Mathf.MoveTowards(v, desiredV, GM.sheepMaxSpeedChange * Time.deltaTime);
-
-    // update position
-    Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
-    // force ground, to revert coliders making sheep fly
-    newPosition.y = 0f;
-
-    transform.position = newPosition;
-    transform.forward = newForward;
 
     // Sheep state animation
     anim.SetBool("IsIdle", sheepState == Enums.SheepState.idle);
