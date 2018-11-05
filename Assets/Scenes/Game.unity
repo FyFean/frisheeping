@@ -97071,7 +97071,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1994702332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103111,11 +103111,12 @@ MonoBehaviour:
   dogRunningSpeed: 7.5
   dogMaxSpeed: 10
   StrombomDogs: 0
+  StrombomDogsPlus: 1
   DogsParametersStrombom:
     r_s: 3
     r_w: 9
     r_r: 18
-    local: 0
+    local: 1
     ns: 20
     occlusion: 0
     blindAngle: 60

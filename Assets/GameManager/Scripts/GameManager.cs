@@ -12,7 +12,8 @@ public class GameManager : MonoBehaviour
   public Text scoreText;
 
   // timer; time available to drive all sheep into the barn 
-  private float gameTimer = 150.0f;
+  //private float gameTimer = 150.0f;
+  private float gameTimer = 1500.0f;
 
   // game settings
   // hardcoded spawn boundaries
@@ -112,7 +113,7 @@ public class GameManager : MonoBehaviour
   public float dogMaxSpeed = 10f;
 
   public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
-  [System.Serializable]
+    [System.Serializable]
   public class DPS
   {
     public float r_s = 3;// length at which dog stops 3ro
@@ -130,6 +131,9 @@ public class GameManager : MonoBehaviour
   private float neighboursUpdateInterval = 0*.5f;
   private float neighboursTimer;
 
+    // distances between each pair of sheep
+    public float[,] sheepDistances;
+
   void Start()
   {
     // spawn
@@ -140,6 +144,8 @@ public class GameManager : MonoBehaviour
 
     // timers
     neighboursTimer = neighboursUpdateInterval;
+
+        sheepDistances = new float[nOfSheep, nOfSheep];
   }
 
   void SpawnSheep()
@@ -203,8 +209,24 @@ public class GameManager : MonoBehaviour
     // update
     UpdateNeighbours();
 
-    // game timer
-    gameTimer -= Time.deltaTime;
+        // cache positions of ship to reduce expensive Transform.position calls
+        foreach (SheepController sc in sheepList)
+            sc.position = sc.transform.position;
+
+        // precalculate distances between sheep
+        for (int i = 0; i < sheepCount-1; i++)
+        {
+            for (int j = i+1; j < sheepCount; j++)
+            {
+                SheepController sc = sheepList[i];
+                SheepController sc2 = sheepList[j];
+                sheepDistances[sc.id, sc2.id] = (sc.position - sc2.position).sqrMagnitude;
+                sheepDistances[sc2.id, sc.id] = sheepDistances[sc.id, sc2.id];
+            }
+        }
+
+        // game timer
+        gameTimer -= Time.deltaTime;
 
     if (gameTimer > 10.0f)
       countdownText.text = ((int)Mathf.Ceil(gameTimer)).ToString();

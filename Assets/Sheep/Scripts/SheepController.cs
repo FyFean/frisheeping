@@ -7,17 +7,44 @@ using System.Linq;
 public class ByDistanceFrom : IComparer<SheepController>, IComparer<DogController>, IComparer<Vector2f>
 {
   public Vector3 position { get; set; }
-  public ByDistanceFrom(Vector3 pos) { position = pos; }
-  public int Compare(SheepController c1, SheepController c2)
-  {
+  public SheepController sc { get; set; }
+    private bool usePosition = false;
+    private GameManager GM;
+  public ByDistanceFrom(Vector3 pos) { position = pos; usePosition = true; }
+  public ByDistanceFrom(SheepController s) { sc = s; GM = s.GM; }
+#if false // call transform.position
+public int Compare(SheepController c1, SheepController c2)
+{
     float dc1 = (c1.transform.position - position).sqrMagnitude;
     float dc2 = (c2.transform.position - position).sqrMagnitude;
 
     if (dc1 > dc2) return 1;
     if (dc1 < dc2) return -1;
     return 0;
-  }
-  public int Compare(DogController c1, DogController c2)
+}
+#else // use cached position
+    public int Compare(SheepController c1, SheepController c2)
+{
+        float dc1, dc2;
+        if (usePosition)
+        {
+            dc1 = (c1.position - position).sqrMagnitude;
+            dc2 = (c2.position - position).sqrMagnitude;
+        } else
+        {
+            dc1 = GM.sheepDistances[sc.id, c1.id];
+            dc2 = GM.sheepDistances[sc.id, c1.id];
+        }
+
+
+
+
+    if (dc1 > dc2) return 1;
+    if (dc1 < dc2) return -1;
+    return 0;
+}
+#endif
+    public int Compare(DogController c1, DogController c2)
   {
     float dc1 = (c1.transform.position - position).sqrMagnitude;
     float dc2 = (c2.transform.position - position).sqrMagnitude;
@@ -57,10 +84,11 @@ public class SheepController : MonoBehaviour
   public Renderer[] sheepCottonParts;
 
   // GameManager
-  private GameManager GM;
+  //private GameManager GM;
+  public GameManager GM;
 
-  // speed
-  private float desiredV = .0f;
+    // speed
+    private float desiredV = .0f;
   private float v;
 
   // heading and postion
@@ -90,7 +118,11 @@ public class SheepController : MonoBehaviour
   [HideInInspector]
   public bool dead = false;
 
-  void Start()
+// cached position
+[HideInInspector]
+public Vector3 position = new Vector3();
+
+    void Start()
   {
     // GameManager
     GM = FindObjectOfType<GameManager>();
@@ -201,6 +233,7 @@ public class SheepController : MonoBehaviour
 
     void Update()
   {
+    UnityEngine.Profiling.Profiler.BeginSample("SheepUpdate");
     /* behavour logic */
     drivesTimer -= Time.deltaTime;
     stateTimer -= Time.deltaTime;
@@ -268,9 +301,11 @@ public class SheepController : MonoBehaviour
       }
     }
 #endif
-  }
+    UnityEngine.Profiling.Profiler.EndSample();
 
-  void NeighboursUpdate()
+    }
+
+    void NeighboursUpdate()
   {
     // executed globaly in GM to achieve a higher update rate, changes due to asynchronous execution ignored
   }
@@ -504,7 +539,7 @@ public class SheepController : MonoBehaviour
 
   public bool IsVisible(Rigidbody rb, float blindAngle)
   {
-#if true // experimental: test occlusion
+#if false // experimental: test occlusion
     Vector3 toCm = rb.worldCenterOfMass - GetComponent<Rigidbody>().worldCenterOfMass;
     bool hit = Physics.Raycast(GetComponent<Rigidbody>().worldCenterOfMass + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
     if (hit) return false;
@@ -527,8 +562,13 @@ public class SheepController : MonoBehaviour
     List<SheepController> sheepNeighbours = new List<SheepController>(GM.sheepList).Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id).ToList();
     if (GM.SheepParametersStrombom.occlusion)
       sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle)).ToList();
+#if false // call transform.position
     sheepNeighbours.Sort(new ByDistanceFrom(transform.position));
-    sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, sheepNeighbours.Count));
+#else // use cached position
+    //sheepNeighbours.Sort(new ByDistanceFrom(position));
+    sheepNeighbours.Sort(new ByDistanceFrom(this));
+#endif
+        sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, sheepNeighbours.Count));
 
     if (dogs.Count == 0)
     {
