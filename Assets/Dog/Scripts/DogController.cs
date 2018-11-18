@@ -558,6 +558,12 @@ public class DogController : MonoBehaviour
             break;
           }
         }
+        // make dog always run when collecting sheep
+        if (!driving)
+        {
+          dogState = Enums.DogState.running;
+          desiredV = GM.dogRunningSpeed;
+        }
 
 
 
