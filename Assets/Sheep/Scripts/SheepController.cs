@@ -519,18 +519,19 @@ public class SheepController : MonoBehaviour
     // desired heading in vector form
     Vector3 desiredThetaVector = new Vector3();
 
-    List<DogController> dogs = new List<DogController>(GM.dogList).Where(dog => (dog.transform.position - transform.position).sqrMagnitude < GM.SheepParametersStrombom.r_s * GM.SheepParametersStrombom.r_s).ToList();
+    var dogs = GM.dogList.Where(dog => (dog.transform.position - transform.position).sqrMagnitude < GM.SheepParametersStrombom.r_s * GM.SheepParametersStrombom.r_s);
     if (GM.SheepParametersStrombom.occlusion)
-      dogs = dogs.Where(dog => IsVisible(dog, GM.SheepParametersStrombom.blindAngle)).ToList();
-    dogs.Sort(new ByDistanceFrom(transform.position));
-    dogs = dogs.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, dogs.Count));
-    List<SheepController> sheepNeighbours = new List<SheepController>(GM.sheepList).Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id).ToList();
+      dogs = dogs.Where(dog => IsVisible(dog, GM.SheepParametersStrombom.blindAngle));
+    dogs = dogs.OrderBy(d => d, new ByDistanceFrom(transform.position))
+        .Take(GM.SheepParametersStrombom.n);
+    var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id);
     if (GM.SheepParametersStrombom.occlusion)
-      sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle)).ToList();
-    sheepNeighbours.Sort(new ByDistanceFrom(transform.position));
-    sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, sheepNeighbours.Count));
+      sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle));
+    sheepNeighbours = sheepNeighbours
+            .OrderBy(d => d, new ByDistanceFrom(transform.position))
+            .Take(GM.SheepParametersStrombom.n);
 
-    if (dogs.Count == 0)
+    if (dogs.Count() == 0)
     {
       if (Random.Range(.0f, 1.0f) < .05f)
         sheepState = Enums.SheepState.walking;
@@ -540,7 +541,7 @@ public class SheepController : MonoBehaviour
     else
     {
       // are there any dogs very close
-      if (new List<DogController>(dogs).Where(dog => (dog.transform.position - transform.position).magnitude < GM.SheepParametersStrombom.r_sS).ToList().Count > 0)
+      if (dogs.Where(dog => (dog.transform.position - transform.position).magnitude < GM.SheepParametersStrombom.r_sS).Count() > 0)
         sheepState = Enums.SheepState.running;
       else
         sheepState = Enums.SheepState.walking;
@@ -563,7 +564,7 @@ public class SheepController : MonoBehaviour
         LCM += sc.transform.position;
       }
       LCM += transform.position;
-      LCM = LCM / (sheepNeighbours.Count + 1);
+      LCM = LCM / (sheepNeighbours.Count() + 1);
 
       // attraction towards LCM
       Vector3 Ci = new Vector3();
