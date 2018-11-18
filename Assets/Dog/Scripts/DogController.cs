@@ -58,13 +58,14 @@ public class DogController : MonoBehaviour
       Controls();
   }
 
-  void FixedUpdate() {
+  void FixedUpdate()
+  {
     DogMovement();
   }
 
   void Controls()
   {
-    if(Input.GetKey(KeyCode.W))
+    if (Input.GetKey(KeyCode.W))
     {
       desiredV += GM.dogMaxSpeedChange * Time.deltaTime;
     }
@@ -74,7 +75,7 @@ public class DogController : MonoBehaviour
     }
     else
     {
-      desiredV = Mathf.MoveTowards(desiredV, 0, GM.dogMaxSpeedChange / 10f); 
+      desiredV = Mathf.MoveTowards(desiredV, 0, GM.dogMaxSpeedChange / 10f);
     }
 
     if (Input.GetKey(KeyCode.A))
@@ -98,7 +99,7 @@ public class DogController : MonoBehaviour
 #if true // experimental: test occlusion
     Vector3 Cm = GetComponent<Rigidbody>().worldCenterOfMass;
     Vector3 toCm = sc.GetComponent<Rigidbody>().worldCenterOfMass - Cm;
-    bool hit = Physics.Raycast(Cm + .5f*toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
+    bool hit = Physics.Raycast(Cm + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
     if (hit) return false;
 #endif
     Vector3 toSc = sc.transform.position - transform.position;
@@ -106,7 +107,7 @@ public class DogController : MonoBehaviour
     return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
   }
 
-  void BehaviourLogicStrombom()
+    void BehaviourLogicStrombom()
   {
     // desired heading in vector form
     Vector3 desiredThetaVector = new Vector3();
@@ -154,7 +155,7 @@ public class DogController : MonoBehaviour
 #endif
 #if true // take into account cognitive limits track max ns nearest neighbours
       sheep.Sort(new ByDistanceFrom(transform.position));
-      sheep = sheep.GetRange(0, Mathf.Min(GM.DogsParametersStrombom.ns, sheep.Count)); 
+      sheep = sheep.GetRange(0, Mathf.Min(GM.DogsParametersStrombom.ns, sheep.Count));
 #endif
     }
 
@@ -289,7 +290,7 @@ public class DogController : MonoBehaviour
     /* end of behaviour logic */
   }
 
-  void DogMovement()
+    void DogMovement()
   {
     // compute angular change based on max angular velocity and desiredTheta
     theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.dogMaxTurn * Time.deltaTime);

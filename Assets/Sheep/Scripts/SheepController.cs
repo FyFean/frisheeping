@@ -8,8 +8,8 @@ public class ByDistanceFrom : IComparer<SheepController>, IComparer<DogControlle
 {
   public Vector3 position { get; set; }
   public SheepController sc { get; set; }
-    private bool usePosition = false;
-    private GameManager GM;
+  private bool usePosition = false;
+  private GameManager GM;
   public ByDistanceFrom(Vector3 pos) { position = pos; usePosition = true; }
   public ByDistanceFrom(SheepController s) { sc = s; GM = s.GM; }
 #if false // call transform.position
@@ -23,18 +23,19 @@ public int Compare(SheepController c1, SheepController c2)
     return 0;
 }
 #else // use cached position
-    public int Compare(SheepController c1, SheepController c2)
-{
-        float dc1, dc2;
-        if (usePosition)
-        {
-            dc1 = (c1.position - position).sqrMagnitude;
-            dc2 = (c2.position - position).sqrMagnitude;
-        } else
-        {
-            dc1 = GM.sheepDistances[sc.id, c1.id];
-            dc2 = GM.sheepDistances[sc.id, c1.id];
-        }
+  public int Compare(SheepController c1, SheepController c2)
+  {
+    float dc1, dc2;
+    if (usePosition)
+    {
+      dc1 = (c1.position - position).sqrMagnitude;
+      dc2 = (c2.position - position).sqrMagnitude;
+    }
+    else
+    {
+      dc1 = GM.sheepDistances[sc.id, c1.id];
+      dc2 = GM.sheepDistances[sc.id, c1.id];
+    }
 
 
 
@@ -42,9 +43,9 @@ public int Compare(SheepController c1, SheepController c2)
     if (dc1 > dc2) return 1;
     if (dc1 < dc2) return -1;
     return 0;
-}
+  }
 #endif
-    public int Compare(DogController c1, DogController c2)
+  public int Compare(DogController c1, DogController c2)
   {
     float dc1 = (c1.transform.position - position).sqrMagnitude;
     float dc2 = (c2.transform.position - position).sqrMagnitude;
@@ -69,7 +70,7 @@ public int Compare(SheepController c1, SheepController c2)
 public class SheepController : MonoBehaviour
 {
   // id
-//  [HideInInspector]
+  //  [HideInInspector]
   public int id;
 
   // state
@@ -87,8 +88,8 @@ public class SheepController : MonoBehaviour
   //private GameManager GM;
   public GameManager GM;
 
-    // speed
-    private float desiredV = .0f;
+  // speed
+  private float desiredV = .0f;
   private float v;
 
   // heading and postion
@@ -109,20 +110,20 @@ public class SheepController : MonoBehaviour
   public List<DogController> dogNeighbours = new List<DogController>();
 
   // update timers
-  private float stateUpdateInterval = 0*.5f;//2*.5f;
+  private float stateUpdateInterval = 0 * .5f;//2*.5f;
   private float stateTimer;
-  private float drivesUpdateInterval = 0*.02f;//1*.2f;
+  private float drivesUpdateInterval = 0 * .02f;//1*.2f;
   private float drivesTimer;
 
   // dead flag
   [HideInInspector]
   public bool dead = false;
 
-// cached position
-[HideInInspector]
-public Vector3 position = new Vector3();
+  // cached position
+  [HideInInspector]
+  public Vector3 position = new Vector3();
 
-    void Start()
+  void Start()
   {
     // GameManager
     GM = FindObjectOfType<GameManager>();
@@ -210,7 +211,8 @@ public Vector3 position = new Vector3();
 #endif
   }
 
-  private void FixedUpdate() {
+  private void FixedUpdate()
+  {
     // compute angular change based on max angular velocity and desiredTheta
     theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.sheepMaxTurn * Time.deltaTime);
     // ensure angle remains in [-180,180)
@@ -231,7 +233,7 @@ public Vector3 position = new Vector3();
     transform.forward = newForward;
   }
 
-    void Update()
+  void Update()
   {
     UnityEngine.Profiling.Profiler.BeginSample("SheepUpdate");
     /* behavour logic */
@@ -303,9 +305,9 @@ public Vector3 position = new Vector3();
 #endif
     UnityEngine.Profiling.Profiler.EndSample();
 
-    }
+  }
 
-    void NeighboursUpdate()
+  void NeighboursUpdate()
   {
     // executed globaly in GM to achieve a higher update rate, changes due to asynchronous execution ignored
   }
@@ -336,7 +338,7 @@ public Vector3 position = new Vector3();
     if (nd < GM.SheepParametersGinelli.r_sS) // feel unsafe much sooner
       d_R *= .25f * Mathf.Pow(nd / GM.SheepParametersGinelli.r_sS, 2f);
     else if (nd < GM.SheepParametersGinelli.r_s) // feel unsafe sooner
-      d_R *= .25f + .25f * Mathf.Pow((nd - GM.SheepParametersGinelli.r_sS)/(GM.SheepParametersGinelli.r_s - GM.SheepParametersGinelli.r_sS), 2f);
+      d_R *= .25f + .25f * Mathf.Pow((nd - GM.SheepParametersGinelli.r_sS) / (GM.SheepParametersGinelli.r_s - GM.SheepParametersGinelli.r_sS), 2f);
 #endif
 #if true // experiment with dogRepulsion not forcing state change
     if (nd < GM.SheepParametersGinelli.r_sS) // feel unsafe much sooner
@@ -348,7 +350,7 @@ public Vector3 position = new Vector3();
     {
       Debug.DrawCircle(transform.position, l_i, new Color(1f, 1f, 1f, 1f));
       Debug.DrawCircle(transform.position, d_R, new Color(0f, 0f, 1f, 1f));
-      Debug.DrawCircle(transform.position, d_S, new Color(1f, 0f, 1f, 1f)); 
+      Debug.DrawCircle(transform.position, d_S, new Color(1f, 0f, 1f, 1f));
       foreach (SheepController snt in topologicNeighbours)
         Debug.DrawCircle(snt.transform.position, .5f, new Color(1f, 1f, 1f, 1f));
     }
@@ -493,10 +495,10 @@ public Vector3 position = new Vector3();
         e_ij = neighbour.transform.position - transform.position;
         d_ij = e_ij.magnitude;
 
-//          if (d_ij > ndc) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
+        //          if (d_ij > ndc) continue; // ignore neighbours that are further away than the dog when the dog is chasing me
 
         if (neighbour.sheepState == Enums.SheepState.running)
-        { 
+        {
           f_ij = 1f;
           // reduce influence of neighbours that are furhter away
           // f_ij *= Mathf.Exp(-Mathf.Max(.0f, d_ij - l_i));
@@ -568,7 +570,7 @@ public Vector3 position = new Vector3();
     //sheepNeighbours.Sort(new ByDistanceFrom(position));
     sheepNeighbours.Sort(new ByDistanceFrom(this));
 #endif
-        sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, sheepNeighbours.Count));
+    sheepNeighbours = sheepNeighbours.GetRange(0, Mathf.Min(GM.SheepParametersStrombom.n, sheepNeighbours.Count));
 
     if (dogs.Count == 0)
     {
@@ -611,9 +613,9 @@ public Vector3 position = new Vector3();
 
       // noise
       float eps = Random.Range(-Mathf.PI * GM.SheepParametersStrombom.e, Mathf.PI * GM.SheepParametersStrombom.e);
-      desiredThetaVector += GM.SheepParametersStrombom.h * transform.forward + 
-        GM.SheepParametersStrombom.c * Ci.normalized + 
-        GM.SheepParametersStrombom.rho_a * Ra.normalized + 
+      desiredThetaVector += GM.SheepParametersStrombom.h * transform.forward +
+        GM.SheepParametersStrombom.c * Ci.normalized +
+        GM.SheepParametersStrombom.rho_a * Ra.normalized +
         GM.SheepParametersStrombom.rho_s * Rs.normalized;
 
       // repulsion from fences and trees

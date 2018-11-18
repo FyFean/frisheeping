@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
     public float blindAngle = 0f;
   }
   public SPG SheepParametersGinelli;
- // public int ns = 8; // experimental: interact with maximally ns neighbours (cognitive limit)
+  // public int ns = 8; // experimental: interact with maximally ns neighbours (cognitive limit)
 
   public bool StrombomSheep = true; // use Ginelli et al.'s model
   [System.Serializable]
@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
   public float dogMaxTurn = 360f; // in deg per second
 
   public float dogMinSpeed = -3f;
-  public float dogWalkingSpeed = 1.5f; 
+  public float dogWalkingSpeed = 1.5f;
   public float dogRunningSpeed = 7.5f; // Strombom original 1.5f
   public float dogMaxSpeed = 10f;
 
@@ -128,11 +128,11 @@ public class GameManager : MonoBehaviour
   public DPS DogsParametersStrombom;
 
   // update frequency
-  private float neighboursUpdateInterval = 0*.5f;
+  private float neighboursUpdateInterval = 0 * .5f;
   private float neighboursTimer;
 
-    // distances between each pair of sheep
-    public float[,] sheepDistances;
+  // distances between each pair of sheep
+  public float[,] sheepDistances;
 
   void Start()
   {
@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour
     // timers
     neighboursTimer = neighboursUpdateInterval;
 
-        sheepDistances = new float[nOfSheep, nOfSheep];
+    sheepDistances = new float[nOfSheep, nOfSheep];
   }
 
   void SpawnSheep()
@@ -209,24 +209,24 @@ public class GameManager : MonoBehaviour
     // update
     UpdateNeighbours();
 
-        // cache positions of ship to reduce expensive Transform.position calls
-        foreach (SheepController sc in sheepList)
-            sc.position = sc.transform.position;
+    // cache positions of ship to reduce expensive Transform.position calls
+    foreach (SheepController sc in sheepList)
+      sc.position = sc.transform.position;
 
-        // precalculate distances between sheep
-        for (int i = 0; i < sheepCount-1; i++)
-        {
-            for (int j = i+1; j < sheepCount; j++)
-            {
-                SheepController sc = sheepList[i];
-                SheepController sc2 = sheepList[j];
-                sheepDistances[sc.id, sc2.id] = (sc.position - sc2.position).sqrMagnitude;
-                sheepDistances[sc2.id, sc.id] = sheepDistances[sc.id, sc2.id];
-            }
-        }
+    // precalculate distances between sheep
+    for (int i = 0; i < sheepCount - 1; i++)
+    {
+      for (int j = i + 1; j < sheepCount; j++)
+      {
+        SheepController sc = sheepList[i];
+        SheepController sc2 = sheepList[j];
+        sheepDistances[sc.id, sc2.id] = (sc.position - sc2.position).sqrMagnitude;
+        sheepDistances[sc2.id, sc.id] = sheepDistances[sc.id, sc2.id];
+      }
+    }
 
-        // game timer
-        gameTimer -= Time.deltaTime;
+    // game timer
+    gameTimer -= Time.deltaTime;
 
     if (gameTimer > 10.0f)
       countdownText.text = ((int)Mathf.Ceil(gameTimer)).ToString();
@@ -312,7 +312,7 @@ public class GameManager : MonoBehaviour
           sc.metricNeighbours = metricNeighbours;
 
           // ignore topologic neighbours further than the closest dog
-//          float l_i = sc.l_i;
+          //          float l_i = sc.l_i;
 #if false
           if (dogs.Count > 0)
           {
@@ -355,7 +355,7 @@ public class GameManager : MonoBehaviour
               case Enums.SheepState.idle:
                 if (neighbour.previousSheepState == Enums.SheepState.running)
                   sc.m_toidle++;
-                  //sc.m_toidle += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of idle sheep with their distance
+                //sc.m_toidle += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of idle sheep with their distance
                 sc.m_idle++;
                 break;
               case Enums.SheepState.running:
