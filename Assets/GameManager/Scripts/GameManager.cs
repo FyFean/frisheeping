@@ -113,7 +113,8 @@ public class GameManager : MonoBehaviour
   public float dogMaxSpeed = 10f;
 
   public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
-    [System.Serializable]
+  public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
+  [System.Serializable]
   public class DPS
   {
     public float r_s = 3;// length at which dog stops 3ro
