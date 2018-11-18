@@ -54,7 +54,7 @@ public class DogController : MonoBehaviour
   {
     if (GM.StrombomDogsPlus)
       BehaviourLogicStrombomPlus();
-    if (GM.StrombomDogs)
+    else if (GM.StrombomDogs)
       BehaviourLogicStrombom();
     else
       Controls();
@@ -559,11 +559,11 @@ public class DogController : MonoBehaviour
           }
         }
         // make dog always run when collecting sheep
-        if (!driving)
+        /*if (!driving)
         {
           dogState = Enums.DogState.running;
           desiredV = GM.dogRunningSpeed;
-        }
+        }*/
 
 
 
