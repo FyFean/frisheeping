@@ -117,11 +117,11 @@ public class DogController : MonoBehaviour
     /* behavour logic */
 
     // get only live sheep
-    List<SheepController> sheep = new List<SheepController>(GM.sheepList).Where(sc => !sc.dead).ToList();
+    var sheep = GM.sheepList.Where(sc => !sc.dead);
     if (GM.DogsParametersStrombom.local)
     { // localized perception
       if (GM.DogsParametersStrombom.occlusion)
-        sheep = sheep.Where(sc => IsVisible(sc, GM.DogsParametersStrombom.blindAngle)).ToList();
+        sheep = sheep.Where(sc => IsVisible(sc, GM.DogsParametersStrombom.blindAngle));
 
 #if false // experimental: exlude visually occludded sheep
       sheepList.Sort(new ByDistanceFrom(transform.position));
@@ -153,19 +153,20 @@ public class DogController : MonoBehaviour
       sheepList = sheepList.Where(sheep => !hidden.Exists(id => id == sheep.id)).ToList();
 #endif
 #if true // take into account cognitive limits track max ns nearest neighbours
-      sheep.Sort(new ByDistanceFrom(transform.position));
-      sheep = sheep.GetRange(0, Mathf.Min(GM.DogsParametersStrombom.ns, sheep.Count)); 
+      sheep = sheep
+        .OrderBy(d => d, new ByDistanceFrom(transform.position))
+        .Take(GM.DogsParametersStrombom.ns); 
 #endif
     }
 
-    if (sheep.Count > 0)
+    if (sheep.Count() > 0)
     {
       // compute CM of sheep
       Vector3 CM = new Vector3();
       foreach (SheepController sc in sheep)
         CM += sc.transform.position;
-      if (sheep.Count > 0)
-        CM /= (float)sheep.Count;
+      if (sheep.Count() > 0)
+        CM /= (float)sheep.Count();
 
       // draw CM
       Vector3 X = new Vector3(1, 0, 0);
@@ -238,7 +239,7 @@ public class DogController : MonoBehaviour
       }
 
       // aproximate radius of a circle
-      float f_N = ro * Mathf.Pow(sheep.Count, 2f / 3f);
+      float f_N = ro * Mathf.Pow(sheep.Count(), 2f / 3f);
       // draw aprox herd size
       Debug.DrawCircle(CM, f_N, new Color(1f, 0f, 0f, 1f));
 
@@ -253,7 +254,7 @@ public class DogController : MonoBehaviour
         BarnController barn = FindObjectOfType<BarnController>();
 
         // compute position so that the GCM is on a line between the dog and the target
-        Vector3 Pd = CM + (CM - barn.transform.position).normalized * ro * Mathf.Sqrt(sheep.Count); // Mathf.Min(ro * Mathf.Sqrt(sheep.Count), Md_sC);
+        Vector3 Pd = CM + (CM - barn.transform.position).normalized * ro * Mathf.Sqrt(sheep.Count()); // Mathf.Min(ro * Mathf.Sqrt(sheep.Count), Md_sC);
         desiredThetaVector = Pd - transform.position;
         if (desiredThetaVector.magnitude > r_w)
           desiredV = GM.dogRunningSpeed;

@@ -265,8 +265,9 @@ public class GameManager : MonoBehaviour
 
           // get metric dogs neighbours
           List<DogController> dogNeighbours = new List<DogController>();
-          List<Vector2f> dogs = dogsL.Where(point => point.DistanceSquare(position) < SheepParametersGinelli.r_s * SheepParametersGinelli.r_s).ToList();
-          dogs.Sort(new ByDistanceFrom(position));
+          var dogs = dogsL
+                        .Where(point => point.DistanceSquare(position) < SheepParametersGinelli.r_s * SheepParametersGinelli.r_s)
+                        .OrderBy(d => d, new ByDistanceFrom(position));
           // dogs.GetRange(0, Mathf.Min(SheepParametersGinelli.n, dogs.Count)); // cognitive limits
           foreach (Vector2f dn in dogs)
             dogNeighbours.Add(dogList[dn.id]);
@@ -278,8 +279,9 @@ public class GameManager : MonoBehaviour
 
           // get metric sheep neighbours
           List<SheepController> metricNeighbours = new List<SheepController>();
-          List<Vector2f> sheep = sheepL.Where(point => point.id != sc.id && point.DistanceSquare(position) < SheepParametersGinelli.r_0 * SheepParametersGinelli.r_0).ToList();
-          sheep.Sort(new ByDistanceFrom(position));
+          var sheep = sheepL
+                        .Where(point => point.id != sc.id && point.DistanceSquare(position) < SheepParametersGinelli.r_0 * SheepParametersGinelli.r_0)
+                        .OrderBy(d => d, new ByDistanceFrom(position));
           // sheep.GetRange(0, Mathf.Min(SheepParametersGinelli.n, sheep.Count)); // cognitive limits
           foreach (Vector2f snm in sheep)
             metricNeighbours.Add(sheepList[snm.id]);
