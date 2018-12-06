@@ -97065,6 +97065,7 @@ GameObject:
   - component: {fileID: 1994702334}
   - component: {fileID: 1994702333}
   - component: {fileID: 1994702332}
+  - component: {fileID: 1994702336}
   m_Layer: 5
   m_Name: Global GUI
   m_TagString: Untagged
@@ -97149,6 +97150,17 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1994702336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1994702331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fc52b514b1f643c28b1c589b50473d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1998583369
 Transform:
   m_ObjectHideFlags: 0
@@ -103118,8 +103130,11 @@ MonoBehaviour:
     r_r: 18
     local: 1
     ns: 20
-    occlusion: 0
+    occlusion: 1
     blindAngle: 60
+  maxFrameTime: 0
+  avgFrameTime: 0
+  simulationRunning: 0
 --- !u!1001 &2130243214
 Prefab:
   m_ObjectHideFlags: 0

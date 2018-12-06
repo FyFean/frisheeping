@@ -346,6 +346,7 @@ public class SheepController : MonoBehaviour
     else if (nd < GM.SheepParametersGinelli.r_s) // feel unsafe sooner
       d_S *= .25f + .25f * Mathf.Pow((nd - GM.SheepParametersGinelli.r_sS) / (GM.SheepParametersGinelli.r_s - GM.SheepParametersGinelli.r_sS), 2f);
 #endif
+#if UNITY_EDITOR
     if (UnityEditor.Selection.activeGameObject != null && UnityEditor.Selection.activeGameObject.GetComponent<SheepController>() != null && UnityEditor.Selection.activeGameObject.GetComponent<SheepController>().id == id)
     {
       Debug.DrawCircle(transform.position, l_i, new Color(1f, 1f, 1f, 1f));
@@ -354,7 +355,7 @@ public class SheepController : MonoBehaviour
       foreach (SheepController snt in topologicNeighbours)
         Debug.DrawCircle(snt.transform.position, .5f, new Color(1f, 1f, 1f, 1f));
     }
-
+#endif
     // probabilities
     float p_iw = (1 + GM.SheepParametersGinelli.alpha * n_walking) / GM.SheepParametersGinelli.tau_iw;
     p_iw = 1 - Mathf.Exp(-p_iw * dt);

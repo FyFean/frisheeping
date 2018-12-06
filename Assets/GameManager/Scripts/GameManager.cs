@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using csDelaunay;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.IO;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,7 +15,7 @@ public class GameManager : MonoBehaviour
 
   // timer; time available to drive all sheep into the barn 
   //private float gameTimer = 150.0f;
-  private float gameTimer = 1500.0f;
+  private float gameTimer = 150.0f;
 
   // game settings
   // hardcoded spawn boundaries
@@ -37,6 +39,7 @@ public class GameManager : MonoBehaviour
   public GameObject sheepPrefab;
   private float minSheepSize = .7f;  // random size
   public int nOfSheep = 100;
+
   [HideInInspector]
   public int sheepCount; // sheep remaining on field
   // list of sheep
@@ -135,6 +138,13 @@ public class GameManager : MonoBehaviour
   // distances between each pair of sheep
   public float[,] sheepDistances;
 
+  [HideInInspector]
+  public float maxFrameTime = 0f;
+  [HideInInspector]
+  public float avgFrameTime = 0f;
+  [HideInInspector]
+  public bool simulationRunning = false;
+
   void Start()
   {
     // spawn
@@ -147,6 +157,7 @@ public class GameManager : MonoBehaviour
     neighboursTimer = neighboursUpdateInterval;
 
     sheepDistances = new float[nOfSheep, nOfSheep];
+    simulationRunning = true;
   }
 
   void SpawnSheep()
@@ -242,7 +253,15 @@ public class GameManager : MonoBehaviour
     if (gameTimer == 0 || sheepCount <= 0)
     {
       // TODO save score - number of dogs, remaining time, remaining sheep
-      Quit();
+      
+      //File.AppendAllText("log.txt", string.Format("{0}\t{1}\t{2}\t{3}\t{4}\n", System.DateTime.Now.ToString(),
+      //150.0f - gameTimer, nOfSheep - sheepCount, maxFrameTime, avgFrameTime));
+      File.AppendAllText("log.txt", string.Format("{0}\t{1}\n",
+        150.0f - gameTimer, nOfSheep - sheepCount));
+      
+      
+      SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+      //Quit();
     }
   }
 
