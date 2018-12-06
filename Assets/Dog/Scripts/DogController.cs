@@ -389,16 +389,37 @@ public class DogController : MonoBehaviour
                                       //float Md_sC = 0;
       float Md_sC = 0.01f;
 
+      float max_priority = -Mathf.Infinity;
       foreach (SheepController sc in sheep)
       {
         // distance from CM
         float d_sC = (CM - sc.transform.position).magnitude;
-        //if (d_sC > Md_sC)
-        if (d_sC > Md_sC && d_sC / Md_sC > 1.1) // try to reduce target swapping
-        {
+
+        // modification: prioritize sheep closer to dog
+
+        Vector3 vectorToSheep = (sc.transform.position - transform.position);
+        float thetaToSheep = Mathf.Atan2(vectorToSheep.z, vectorToSheep.x) * Mathf.Rad2Deg;
+        float angleDelta = ((thetaToSheep - theta) + 180f) % 360f - 180f;
+
+        float d_dog = (transform.position - sc.transform.position).magnitude;
+        //float priority = d_sC - Mathf.Sqrt(d_dog);
+        //float priority = d_sC - d_dog;
+        float priority = d_sC * ((1f - Mathf.Abs(angleDelta/180f)) * 0.5f);
+        // sheep directly behind dog have lower priority
+        if (priority > max_priority) {
+          max_priority = priority;
           Md_sC = d_sC;
           sheep_c = sc;
         }
+
+
+
+        //if (d_sC > Md_sC)
+        //if (d_sC > Md_sC && d_sC / Md_sC > 1.5) // try to reduce target swapping
+        //{
+        //  Md_sC = d_sC;
+        //  sheep_c = sc;
+        //}
 
         // distance from dog
         float d_ds = (sc.transform.position - transform.position).magnitude;
@@ -441,9 +462,10 @@ public class DogController : MonoBehaviour
         dogState = Enums.DogState.walking;
         desiredV = GM.dogWalkingSpeed;
       }
-      else if (md_ds < r_w)
+      //else if (md_ds < r_w)
+      else if (md_ds < r_r)
       {
-        dogState = Enums.DogState.walking;
+        dogState = Enums.DogState.running;
         desiredV = GM.dogRunningSpeed;
       }
       else if (md_ds > r_r)
@@ -517,7 +539,7 @@ public class DogController : MonoBehaviour
 
       if (Mathf.Abs(delta) < 90) // only use arc if furthest sheep is closer to CM than dog
       {
-        float arcAngle = 90f; // maintain distance from CM
+        float arcAngle = 85f; // maintain distance from CM
                               // TODO include (ratio with repulsion) distance in equation?
         if (driving && desiredThetaVector.magnitude > cmVector.magnitude)
         {
