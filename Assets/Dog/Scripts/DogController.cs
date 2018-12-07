@@ -486,7 +486,9 @@ public class DogController : MonoBehaviour
 #endif
       bool driving = false;
       // if all agents in a single compact group, collect them
-      if (Md_sC < f_N)
+      //if (Md_sC < f_N)
+      // modified: if we have multiple dogs, one is always in driving mode
+      if (Md_sC < f_N || (GM.dogList.Count() > 1 && id == 0))
       {
         BarnController barn = FindObjectOfType<BarnController>();
 
@@ -518,6 +520,23 @@ public class DogController : MonoBehaviour
         Debug.DrawRay(Pc - X + Z, -2 * Z, color);
 
       }
+
+      if (GM.dogRepulsion && GM.dogList.Count() > 1)
+      {
+        float repulsionDistance = (id + 3) * 5 / 3f;
+        List<DogController> otherDogs = new List<DogController>(GM.dogList).Where(d => d != this).ToList();
+        Vector3 repulsionVector = new Vector3(0f, 0f, 0f);
+        foreach (DogController d in otherDogs)
+        {
+          if ((transform.position - d.transform.position).magnitude < repulsionDistance)
+          {
+            repulsionVector += (transform.position - d.transform.position);
+          }
+        }
+        desiredThetaVector += repulsionVector;
+        Debug.DrawCircle(transform.position, repulsionDistance, new Color(0f, 1f, 1f, 1f));
+        Debug.DrawLine(transform.position, transform.position + repulsionVector);
+      }     
 
 
       // arc movement

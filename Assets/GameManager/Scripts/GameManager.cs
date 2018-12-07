@@ -117,6 +117,8 @@ public class GameManager : MonoBehaviour
 
   public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
   public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
+
+  public bool dogRepulsion = true;
   [System.Serializable]
   public class DPS
   {

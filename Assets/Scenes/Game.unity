@@ -35466,7 +35466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 2
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -43797,7 +43797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 2
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -45465,7 +45465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 1
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -46084,7 +46084,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 1
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -52870,7 +52870,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 1
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -68631,7 +68631,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6acbb6904e635d4686151cbbaf05533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  id: 0
+  id: 3
   dogState: 0
   previousDogState: 0
   controls: 0
@@ -103124,6 +103124,7 @@ MonoBehaviour:
   dogMaxSpeed: 10
   StrombomDogs: 0
   StrombomDogsPlus: 1
+  dogRepulsion: 1
   DogsParametersStrombom:
     r_s: 3
     r_w: 9
