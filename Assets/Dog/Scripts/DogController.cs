@@ -615,8 +615,13 @@ public class DogController : MonoBehaviour
     }
     else
     {
-      dogState = Enums.DogState.idle;
-      desiredV = .0f;
+      //dogState = Enums.DogState.idle;
+      //desiredV = .0f;
+      // turn around after losing vision of sheep instead of standing still
+      dogState = Enums.DogState.walking;
+      desiredV = GM.dogWalkingSpeed;
+      desiredTheta = (desiredTheta - GM.dogMaxTurn * Time.deltaTime + 180f) % 360f - 180f;
+      return;
     }
 
     // extract desired heading
