@@ -103112,7 +103112,7 @@ MonoBehaviour:
     r_sS: 12.25
     rho_f: 2
     r_f: 3
-    n: 20
+    n: 7
     occlusion: 0
     blindAngle: 0
   dogList: []
@@ -103125,12 +103125,14 @@ MonoBehaviour:
   StrombomDogs: 0
   StrombomDogsPlus: 1
   dogRepulsion: 1
+  disableRendering: 1
+  timeScale: 2
   DogsParametersStrombom:
     r_s: 3
     r_w: 9
     r_r: 18
     local: 1
-    ns: 20
+    ns: 7
     occlusion: 1
     blindAngle: 60
   maxFrameTime: 0

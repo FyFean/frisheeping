@@ -119,6 +119,10 @@ public class GameManager : MonoBehaviour
   public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
 
   public bool dogRepulsion = true;
+
+  public bool disableRendering = true;
+  public float timeScale = 1.0f;
+
   [System.Serializable]
   public class DPS
   {
@@ -149,6 +153,10 @@ public class GameManager : MonoBehaviour
 
   void Start()
   {
+    if(disableRendering) {
+      GameObject.Find("Overview Camera").GetComponent<Camera>().cullingMask = 0;
+    }
+    Time.timeScale = timeScale;
     // spawn
     SpawnSheep();
 
@@ -254,12 +262,16 @@ public class GameManager : MonoBehaviour
 
     if (gameTimer == 0 || sheepCount <= 0)
     {
+      if(disableRendering) {
+        GameObject.Find("Overview Camera").GetComponent<Camera>().cullingMask = -1;
+      }
       // TODO save score - number of dogs, remaining time, remaining sheep
-      
-      //File.AppendAllText("log.txt", string.Format("{0}\t{1}\t{2}\t{3}\t{4}\n", System.DateTime.Now.ToString(),
-      //150.0f - gameTimer, nOfSheep - sheepCount, maxFrameTime, avgFrameTime));
-      File.AppendAllText("log.txt", string.Format("{0}\t{1}\n",
-        150.0f - gameTimer, nOfSheep - sheepCount));
+      ScreenCapture.CaptureScreenshot(string.Format("{0} {1} {2} {3} {4}.png\n", System.DateTime.Now.ToString("u"),
+      150.0f - gameTimer, nOfSheep - sheepCount, maxFrameTime, avgFrameTime));
+      File.AppendAllText("log.txt", string.Format("{0}\t{1}\t{2}\t{3}\t{4}\n", System.DateTime.Now.ToString("u"),
+      150.0f - gameTimer, nOfSheep - sheepCount, maxFrameTime, avgFrameTime));
+      //File.AppendAllText("log.txt", string.Format("{0}\t{1}\n",
+        //150.0f - gameTimer, nOfSheep - sheepCount));
       
       
       SceneManager.LoadScene(SceneManager.GetActiveScene().name);
