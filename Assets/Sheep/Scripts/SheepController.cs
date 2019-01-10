@@ -448,7 +448,7 @@ public class SheepController : MonoBehaviour
       float r_f2 = GM.SheepParametersGinelli.r_f * GM.SheepParametersGinelli.r_f;
       foreach (Collider fenceCollider in GM.fenceColliders)
       {
-        Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(transform.position);
+        Vector3 closestPoint = fenceCollider.ClosestPoint(transform.position);
         if ((transform.position - closestPoint).sqrMagnitude < r_f2)
         {
           e_ij = closestPoint - transform.position;

@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
   // fences
   [Header("Fence")]
   public GameObject fence;
+  [Header("Barn doors")]
+  public GameObject barnDoors;
   [HideInInspector]
   public Collider[] fenceColliders;
 
@@ -161,7 +163,7 @@ public class GameManager : MonoBehaviour
     SpawnSheep();
 
     // fences colliders
-    fenceColliders = fence.GetComponentsInChildren<Collider>();
+    fenceColliders = fence.GetComponentsInChildren<Collider>().Concat(barnDoors.GetComponentsInChildren<Collider>()).ToArray();
 
     // timers
     neighboursTimer = neighboursUpdateInterval;

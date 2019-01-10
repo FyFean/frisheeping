@@ -542,13 +542,17 @@ public class DogController : MonoBehaviour
       // arc movement
       // direct line to sheep furthest from CM
       color = Color.cyan;
-      Debug.DrawRay(transform.position, desiredThetaVector, color);
+      if (driving) {
+        Debug.DrawRay(transform.position, desiredThetaVector, new Color(0f, 1f, 0f, 1f));
+      } else {
+        Debug.DrawRay(transform.position, desiredThetaVector, new Color(1f, .5f, 0f, 1f));
+      }
       // arc around CM
-      Debug.DrawCircle(CM, (transform.position - CM).magnitude, color, true);
+      Debug.DrawCircle(CM, (transform.position - CM).magnitude, Color.blue, false);
 
       //Vector3 cmVector = transform.position + (transform.position - CM);
       Vector3 cmVector = CM - transform.position;
-      Debug.DrawRay(transform.position, cmVector, color);
+      Debug.DrawRay(transform.position, cmVector, Color.red);
       float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
       desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
 
