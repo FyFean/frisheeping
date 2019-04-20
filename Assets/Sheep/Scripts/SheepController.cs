@@ -213,8 +213,18 @@ public class SheepController : MonoBehaviour
 
   private void FixedUpdate()
   {
+    if (!GM.useFixedTimestep) Move();
+  }
+
+  void Move() {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     // compute angular change based on max angular velocity and desiredTheta
-    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.sheepMaxTurn * Time.deltaTime);
+    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.sheepMaxTurn * timestep);
     // ensure angle remains in [-180,180)
     theta = (theta + 180f) % 360f - 180f;
 
@@ -222,23 +232,36 @@ public class SheepController : MonoBehaviour
     Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
 
     // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
-    v = Mathf.MoveTowards(v, desiredV, GM.sheepMaxSpeedChange * Time.deltaTime);
+    v = Mathf.MoveTowards(v, desiredV, GM.sheepMaxSpeedChange * timestep);
 
     // update position
-    Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
+    Vector3 newPosition = transform.position + (timestep * v * newForward);
     // force ground, to revert coliders making sheep fly
     newPosition.y = 0f;
 
     transform.position = newPosition;
     transform.forward = newForward;
+
+    // update distance values after position update
+    for (int i = 0; i < GM.sheepCount; i++) {
+      SheepController sc = GM.sheepList[i];
+      GM.sheepDistances[this.id, sc.id] = (sc.position - this.position).sqrMagnitude;
+      GM.sheepDistances[sc.id, this.id] = GM.sheepDistances[this.id, sc.id];
+    }
   }
 
   void Update()
   {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     UnityEngine.Profiling.Profiler.BeginSample("SheepUpdate");
     /* behavour logic */
-    drivesTimer -= Time.deltaTime;
-    stateTimer -= Time.deltaTime;
+    drivesTimer -= timestep;
+    stateTimer -= timestep;
 
     if (GM.StrombomSheep)
     {
@@ -304,7 +327,7 @@ public class SheepController : MonoBehaviour
     }
 #endif
     UnityEngine.Profiling.Profiler.EndSample();
-
+    if (GM.useFixedTimestep) Move();
   }
 
   void NeighboursUpdate()
@@ -314,9 +337,15 @@ public class SheepController : MonoBehaviour
 
   void UpdateState()
   {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     float dt = stateUpdateInterval;
     if (stateUpdateInterval <= 0f)
-      dt = Time.deltaTime;
+      dt = timestep;
 
     previousSheepState = sheepState;
 

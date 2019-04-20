@@ -122,8 +122,6 @@ public class GameManager : MonoBehaviour
 
   public bool dogRepulsion = true;
 
-  public bool disableRendering = true;
-  public float timeScale = 1.0f;
 
   [System.Serializable]
   public class DPS
@@ -136,8 +134,18 @@ public class GameManager : MonoBehaviour
     public int ns = 20; // size of local subgroups
     public bool occlusion = false; // bahaviour based on local info only, i.e. visible non occluded Sheep
     public float blindAngle = 60f; // in degrees
+
+    public float runningBlindAngle = 300f;
+    public bool dynamicBlindAngle = false;
   }
   public DPS DogsParametersStrombom;
+
+  [Header("Simulation")]
+  public bool disableRendering = true;
+  public float timeScale = 1.0f;
+  public bool useFixedTimestep = false;
+  public float fixedTimestep = 0.02f;
+  public bool showDogPaths = false;
 
   // update frequency
   private float neighboursUpdateInterval = 0 * .5f;
@@ -161,6 +169,15 @@ public class GameManager : MonoBehaviour
     Time.timeScale = timeScale;
     // spawn
     SpawnSheep();
+
+    if (showDogPaths) {
+      foreach (DogController dc in dogList) {
+        TrailRenderer tr = dc.gameObject.AddComponent(typeof(TrailRenderer)) as TrailRenderer;
+        tr.startWidth = 0.2f;
+        tr.endWidth = 0.2f;
+        tr.time = 500f;
+      }
+    }
 
     // fences colliders
     fenceColliders = fence.GetComponentsInChildren<Collider>().Concat(barnDoors.GetComponentsInChildren<Collider>()).ToArray();
@@ -224,6 +241,12 @@ public class GameManager : MonoBehaviour
 
   void Update()
   {
+    float timestep;
+    if (useFixedTimestep) {
+      timestep = fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     // pause menu
     if (Input.GetKeyDown(KeyCode.Escape))
     {
@@ -238,6 +261,7 @@ public class GameManager : MonoBehaviour
       sc.position = sc.transform.position;
 
     // precalculate distances between sheep
+    /*
     for (int i = 0; i < sheepCount - 1; i++)
     {
       for (int j = i + 1; j < sheepCount; j++)
@@ -248,9 +272,10 @@ public class GameManager : MonoBehaviour
         sheepDistances[sc2.id, sc.id] = sheepDistances[sc.id, sc2.id];
       }
     }
+    */
 
     // game timer
-    gameTimer -= Time.deltaTime;
+    gameTimer -= timestep;
 
     if (gameTimer > 10.0f)
       countdownText.text = ((int)Mathf.Ceil(gameTimer)).ToString();
@@ -283,7 +308,13 @@ public class GameManager : MonoBehaviour
 
   private void UpdateNeighbours()
   {
-    neighboursTimer -= Time.deltaTime;
+    float timestep;
+    if (useFixedTimestep) {
+      timestep = fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
+    neighboursTimer -= timestep;
     if (neighboursTimer < 0)
     {
       neighboursTimer = neighboursUpdateInterval;

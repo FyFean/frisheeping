@@ -103184,16 +103184,21 @@ MonoBehaviour:
   StrombomDogs: 0
   StrombomDogsPlus: 1
   dogRepulsion: 1
-  disableRendering: 0
-  timeScale: 1
   DogsParametersStrombom:
     r_s: 3
     r_w: 9
     r_r: 18
     local: 1
-    ns: 7
+    ns: 100
     occlusion: 1
     blindAngle: 60
+    runningBlindAngle: 240
+    dynamicBlindAngle: 1
+  disableRendering: 0
+  timeScale: 1
+  useFixedTimestep: 1
+  fixedTimestep: 0.02
+  showDogPaths: 1
   maxFrameTime: 0
   avgFrameTime: 0
   simulationRunning: 0

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -58,22 +58,33 @@ public class DogController : MonoBehaviour
       BehaviourLogicStrombom();
     else
       Controls();
+    if (GM.useFixedTimestep) {
+      DogMovement();
+    }
   }
 
   void FixedUpdate()
   {
-    DogMovement();
+    if (!GM.useFixedTimestep) {
+      DogMovement();
+    }
   }
 
   void Controls()
   {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     if (Input.GetKey(KeyCode.W))
     {
-      desiredV += GM.dogMaxSpeedChange * Time.deltaTime;
+      desiredV += GM.dogMaxSpeedChange * timestep;
     }
     else if (Input.GetKey(KeyCode.S))
     {
-      desiredV -= GM.dogMaxSpeedChange * Time.deltaTime;
+      desiredV -= GM.dogMaxSpeedChange * timestep;
     }
     else
     {
@@ -82,11 +93,11 @@ public class DogController : MonoBehaviour
 
     if (Input.GetKey(KeyCode.A))
     {
-      desiredTheta += GM.dogMaxTurn * Time.deltaTime;
+      desiredTheta += GM.dogMaxTurn * timestep;
     }
     else if (Input.GetKey(KeyCode.D))
     {
-      desiredTheta -= GM.dogMaxTurn * Time.deltaTime;
+      desiredTheta -= GM.dogMaxTurn * timestep;
     }
     else
     {
@@ -104,6 +115,9 @@ public class DogController : MonoBehaviour
     bool hit = Physics.Raycast(Cm + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
     if (hit) return false;
 #endif
+    if (GM.DogsParametersStrombom.dynamicBlindAngle) {
+      blindAngle = blindAngle + (GM.DogsParametersStrombom.runningBlindAngle - blindAngle) * (this.v / GM.dogRunningSpeed);
+    }
     Vector3 toSc = sc.transform.position - transform.position;
     float cos = Vector3.Dot(transform.forward, toSc.normalized);
     return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
@@ -303,6 +317,12 @@ public class DogController : MonoBehaviour
 
   void BehaviourLogicStrombomPlus()
   {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     // desired heading in vector form
     Vector3 desiredThetaVector = new Vector3();
     // noise
@@ -364,6 +384,7 @@ public class DogController : MonoBehaviour
 
 
       // check if dog is closer to CM than average sheep, if true the herd is split
+      /*
       float totalDistFromCM = 0;
       foreach (SheepController sc in sheep)
         totalDistFromCM += (sc.transform.position - CM).magnitude;
@@ -373,6 +394,7 @@ public class DogController : MonoBehaviour
       float dogDistFromCM = (transform.position - CM).magnitude;
       if (avgDistFromCM > dogDistFromCM) // dog is between two or more herds => ignore one side
         sheep = sheep.Where(s => !IsBehindDog(s, CM, transform.position)).ToList();
+      */
 
 
 
@@ -604,6 +626,9 @@ public class DogController : MonoBehaviour
             break;
           }
         }
+        
+
+        
         // make dog always run when collecting sheep
         /*if (!driving)
         {
@@ -611,22 +636,95 @@ public class DogController : MonoBehaviour
           desiredV = GM.dogRunningSpeed;
         }*/
 
-
-
       }
+
+      List<ConvexHull.Point> points = new List<ConvexHull.Point>();
+      foreach (SheepController sc in sheep) {
+        points.Add(new ConvexHull.Point(sc.position.x, sc.position.z));
+      }
+      List<ConvexHull.Point> hull = ConvexHull.convexHull(points);
+      ConvexHull.Point prev = hull.Last();
+      foreach (ConvexHull.Point p in hull) {
+        Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.4f));
+        prev = p;
+      }
+      List<ConvexHull.Point> expandedHull = new List<ConvexHull.Point>();
+      if (hull.Count > 1) {
+        for (int i = 0; i < hull.Count(); i++) {
+          prev = i > 0 ? hull[i-1] : hull.Last();
+          ConvexHull.Point next = i < hull.Count - 1 ? hull[i+1] : hull[0];
+          float prevAngle = (Mathf.Atan2(prev.y - hull[i].y, prev.x - hull[i].x) + eps) * Mathf.Rad2Deg;
+          float prevPlus90 = (prevAngle + 90f + 180f) % 360f - 180f;
+          float nextAngle = (Mathf.Atan2(next.y - hull[i].y, next.x - hull[i].x) + eps) * Mathf.Rad2Deg;
+          float nextMinus90 = (nextAngle - 90f + 180f) % 360f - 180f;
+          //float delta12 = (nextMinus90 - prevPlus90 + 180f) % 360f - 180f;
+          float delta12 = (nextMinus90 - prevPlus90 + 720f) % 360f;
+          int nSteps = (int)(delta12/30f) + 1;
+          //Debug.Log(nSteps);
+          Vector3 currentPointVector = new Vector3(hull[i].x, 0, hull[i].y);
+          for(int j = 0; j <= nSteps; j++) {
+            float angle = (prevPlus90 + j * (delta12/nSteps)) * Mathf.Deg2Rad;
+            Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
+            ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
+            expandedHull.Add(p);
+            
+          }
+          /*
+          float prevPlus90Rad = prevPlus90 * Mathf.Deg2Rad;
+          float nextMinus90Rad = nextMinus90 * Mathf.Deg2Rad;
+          Vector3 prevPlus90Vector = new Vector3(Mathf.Cos(prevPlus90Rad), 0, Mathf.Sin(prevPlus90Rad)) * 5f;
+          Vector3 nextMinus90Vector = new Vector3(Mathf.Cos(nextMinus90Rad), 0, Mathf.Sin(nextMinus90Rad)) * 5f;
+          Vector3 v1 = new Vector3(hull[i].x, 0, hull[i].y) + prevPlus90Vector;
+          Vector3 v2 = new Vector3(hull[i].x, 0, hull[i].y) + nextMinus90Vector;
+          ConvexHull.Point p1 = new ConvexHull.Point(v1.x, v1.z);
+          ConvexHull.Point p2 = new ConvexHull.Point(v2.x, v2.z);
+          expandedHull.Add(p1);
+          expandedHull.Add(p2);
+          */
+        }
+      } else {
+        Vector3 currentPointVector = new Vector3(hull[0].x, 0, hull[0].y);
+        for (int i = 0; i < 12; i++) {
+          float angle = i * 30 * Mathf.Deg2Rad;
+          Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
+          ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
+          expandedHull.Add(p);
+        }
+      }
+      
+      prev = expandedHull.Last();
+      foreach (ConvexHull.Point p in expandedHull) {
+        Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.7f));
+        prev = p;
+      }
+        //Debug.DrawCircle(sc.transform.position, .5f, new Color(1f, 0f, 0f, 1f));
 
 
     }
-    else
+    else // no visible sheep
     {
       //dogState = Enums.DogState.idle;
       //desiredV = .0f;
       // turn around after losing vision of sheep instead of standing still
       dogState = Enums.DogState.walking;
       desiredV = GM.dogWalkingSpeed;
-      desiredTheta = (desiredTheta - GM.dogMaxTurn * Time.deltaTime + 180f) % 360f - 180f;
+      desiredTheta = (desiredTheta - GM.dogMaxTurn * timestep + 180f) % 360f - 180f;
       return;
     }
+
+    
+    if (GM.DogsParametersStrombom.occlusion) {
+          float blindAngle = GM.DogsParametersStrombom.blindAngle;
+          if (GM.DogsParametersStrombom.dynamicBlindAngle) {
+            blindAngle = blindAngle + (GM.DogsParametersStrombom.runningBlindAngle - blindAngle) * (this.v / GM.dogRunningSpeed);
+          }
+          float blindAngle1 = ((theta + blindAngle/2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
+          Vector3 blindVector1 = new Vector3(Mathf.Cos(blindAngle1), 0, Mathf.Sin(blindAngle1));
+          Debug.DrawRay(transform.position, blindVector1 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
+          float blindAngle2 = ((theta - blindAngle/2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
+          Vector3 blindVector2 = new Vector3(Mathf.Cos(blindAngle2), 0, Mathf.Sin(blindAngle2));
+          Debug.DrawRay(transform.position, blindVector2 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
+        }
 
     // extract desired heading
     desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
@@ -636,19 +734,25 @@ public class DogController : MonoBehaviour
 
   void DogMovement()
   {
+    float timestep;
+    if (GM.useFixedTimestep) {
+      timestep = GM.fixedTimestep;
+    } else {
+      timestep = Time.deltaTime;
+    }
     // compute angular change based on max angular velocity and desiredTheta
-    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.dogMaxTurn * Time.deltaTime);
+    theta = Mathf.MoveTowardsAngle(theta, desiredTheta, GM.dogMaxTurn * timestep);
     // ensure angle remains in [-180,180)
     theta = (theta + 180f) % 360f - 180f;
     // compute longitudinal velocity change based on max longitudinal acceleration and desiredV
-    v = Mathf.MoveTowards(v, desiredV, GM.dogMaxSpeedChange * Time.deltaTime);
+    v = Mathf.MoveTowards(v, desiredV, GM.dogMaxSpeedChange * timestep);
     // ensure speed remains in [minSpeed, maxSpeed]
     v = Mathf.Clamp(v, GM.dogMinSpeed, GM.dogMaxSpeed);
 
     // compute new forward direction
     Vector3 newForward = new Vector3(Mathf.Cos(theta * Mathf.Deg2Rad), .0f, Mathf.Sin(theta * Mathf.Deg2Rad)).normalized;
     // update position
-    Vector3 newPosition = transform.position + (Time.deltaTime * v * newForward);
+    Vector3 newPosition = transform.position + (timestep * v * newForward);
     // force ground, to revert coliders making sheep fly
     newPosition.y = 0f;
 
@@ -684,5 +788,6 @@ public class DogController : MonoBehaviour
     anim.SetBool("IsWalking", (v > 0 && v <= 6) ||
                                turningLeft ||
                                turningRight);
+
   }
 }
