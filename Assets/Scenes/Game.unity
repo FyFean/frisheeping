@@ -103171,7 +103171,7 @@ MonoBehaviour:
     r_sS: 12.25
     rho_f: 2
     r_f: 3
-    n: 7
+    n: 20
     occlusion: 0
     blindAngle: 0
   dogList: []
@@ -103192,12 +103192,16 @@ MonoBehaviour:
     ns: 100
     occlusion: 1
     blindAngle: 60
-    runningBlindAngle: 240
+    runningBlindAngle: 180
     dynamicBlindAngle: 1
+    arcMovement: 0
+    arcMovement2: 1
+    rho_f: 2
+    r_f: 15
   disableRendering: 0
   timeScale: 1
   useFixedTimestep: 1
-  fixedTimestep: 0.02
+  fixedTimestep: 0.04
   showDogPaths: 1
   maxFrameTime: 0
   avgFrameTime: 0
