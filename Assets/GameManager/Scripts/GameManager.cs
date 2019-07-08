@@ -137,6 +137,12 @@ public class GameManager : MonoBehaviour
 
     public float runningBlindAngle = 300f;
     public bool dynamicBlindAngle = false;
+
+    public bool arcMovement = false;
+    public bool arcMovement2 = true;
+    public float rho_f = .5f; // relative strength of repulsion from fences
+    public float r_f = 10f; // fence detection distance
+
   }
   public DPS DogsParametersStrombom;
 

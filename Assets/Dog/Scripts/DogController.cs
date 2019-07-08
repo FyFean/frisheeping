@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -567,83 +567,157 @@ public class DogController : MonoBehaviour
         Debug.DrawLine(transform.position, transform.position + repulsionVector);
       }     
 
-
-      // arc movement
-      // direct line to sheep furthest from CM
-      color = Color.cyan;
-      if (driving) {
-        Debug.DrawRay(transform.position, desiredThetaVector, new Color(0f, 1f, 0f, 1f));
-      } else {
-        Debug.DrawRay(transform.position, desiredThetaVector, new Color(1f, .5f, 0f, 1f));
-      }
-      // arc around CM
-      Debug.DrawCircle(CM, (transform.position - CM).magnitude, Color.blue, false);
-
-      //Vector3 cmVector = transform.position + (transform.position - CM);
-      Vector3 cmVector = CM - transform.position;
-      Debug.DrawRay(transform.position, cmVector, Color.red);
-      float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
-      desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
-
-      float delta = cmTheta - desiredTheta;
-      delta = (delta + 180f) % 360f - 180f;
-
-
-      if (Mathf.Abs(delta) < 90) // only use arc if furthest sheep is closer to CM than dog
-      {
-        float arcAngle = 85f; // maintain distance from CM
-                              // TODO include (ratio with repulsion) distance in equation?
-        if (driving && desiredThetaVector.magnitude > cmVector.magnitude)
-        {
-          // driving position is on other side of the herd, go around
+      if (GM.DogsParametersStrombom.arcMovement) {
+        // arc movement
+        // direct line to sheep furthest from CM
+        color = Color.cyan;
+        if (driving) {
+          Debug.DrawRay(transform.position, desiredThetaVector, new Color(0f, 1f, 0f, 1f));
+        } else {
+          Debug.DrawRay(transform.position, desiredThetaVector, new Color(1f, .5f, 0f, 1f));
         }
-        else
+        // arc around CM
+        Debug.DrawCircle(CM, (transform.position - CM).magnitude, Color.blue, false);
+
+        //Vector3 cmVector = transform.position + (transform.position - CM);
+        Vector3 cmVector = CM - transform.position;
+        Debug.DrawRay(transform.position, cmVector, Color.red);
+        float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
+        desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
+
+        float delta = cmTheta - desiredTheta;
+        delta = (delta + 180f) % 360f - 180f;
+
+
+        if (Mathf.Abs(delta) < 90) // only use arc if furthest sheep is closer to CM than dog
         {
-          arcAngle = Mathf.Min(3 * Mathf.Abs(delta), arcAngle); // get closer if angle between furthest sheep and CM is small
-        }
-
-        // calculate new desired angle
-        float arcTheta = 0;
-        if (delta < 0) arcTheta = (cmTheta + arcAngle + 180f) % 360f - 180f;
-        else arcTheta = (cmTheta - arcAngle + 180f) % 360f - 180f;
-        float arcThetaRad = arcTheta * Mathf.Deg2Rad;
-
-        Vector3 arcVector = (new Vector3(Mathf.Cos(arcThetaRad), 0, Mathf.Sin(arcThetaRad)) * 10);
-
-
-        // correct angle to avoid fence
-        float angleCorrectionStep = 10; // degrees
-        angleCorrectionStep = (((desiredTheta - arcTheta + 180f) % 360f) - 180f) > 0 ? angleCorrectionStep : -angleCorrectionStep;
-
-        RaycastHit hit;
-        for (int i = 0; i < (180f / Mathf.Abs(angleCorrectionStep)); i++)
-        {
-          if (Physics.Raycast(transform.position, arcVector, out hit, 10f))
+          float arcAngle = 85f; // maintain distance from CM
+                                // TODO include (ratio with repulsion) distance in equation?
+          if (driving && desiredThetaVector.magnitude > cmVector.magnitude)
           {
-            //Debug.DrawRay(transform.position, arcVector * hit.distance, Color.yellow);
-            // close to fence, adjust angle
-            arcTheta = arcTheta + angleCorrectionStep;
-            arcThetaRad = arcTheta * Mathf.Deg2Rad;
-            arcVector = (new Vector3(Mathf.Cos(arcThetaRad), 0, Mathf.Sin(arcThetaRad)) * 10);
+            // driving position is on other side of the herd, go around
           }
           else
           {
-            Debug.DrawRay(transform.position, arcVector, Color.white);
-            desiredThetaVector = arcVector;
-            break;
+            arcAngle = Mathf.Min(3 * Mathf.Abs(delta), arcAngle); // get closer if angle between furthest sheep and CM is small
+          }
+
+          // calculate new desired angle
+          float arcTheta = 0;
+          if (delta < 0) arcTheta = (cmTheta + arcAngle + 180f) % 360f - 180f;
+          else arcTheta = (cmTheta - arcAngle + 180f) % 360f - 180f;
+          float arcThetaRad = arcTheta * Mathf.Deg2Rad;
+
+          Vector3 arcVector = (new Vector3(Mathf.Cos(arcThetaRad), 0, Mathf.Sin(arcThetaRad)) * 10);
+
+
+          // correct angle to avoid fence
+          float angleCorrectionStep = 10; // degrees
+          angleCorrectionStep = (((desiredTheta - arcTheta + 180f) % 360f) - 180f) > 0 ? angleCorrectionStep : -angleCorrectionStep;
+
+          RaycastHit hit;
+          for (int i = 0; i < (180f / Mathf.Abs(angleCorrectionStep)); i++)
+          {
+            if (Physics.Raycast(transform.position, arcVector, out hit, 10f))
+            {
+              //Debug.DrawRay(transform.position, arcVector * hit.distance, Color.yellow);
+              // close to fence, adjust angle
+              arcTheta = arcTheta + angleCorrectionStep;
+              arcThetaRad = arcTheta * Mathf.Deg2Rad;
+              arcVector = (new Vector3(Mathf.Cos(arcThetaRad), 0, Mathf.Sin(arcThetaRad)) * 10);
+            }
+            else
+            {
+              Debug.DrawRay(transform.position, arcVector, Color.white);
+              desiredThetaVector = arcVector;
+              break;
+            }
+          }
+          
+
+          
+          // make dog always run when collecting sheep
+          /*if (!driving)
+          {
+            dogState = Enums.DogState.running;
+            desiredV = GM.dogRunningSpeed;
+          }*/
+
+        }
+      }
+      if (GM.DogsParametersStrombom.arcMovement2) {
+        Vector3 cmVector = CM - transform.position;
+        Debug.DrawRay(transform.position, cmVector, Color.red);
+        float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
+        
+        desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
+        float delta = cmTheta - desiredTheta;
+        delta = (delta + 180f) % 360f - 180f;
+        Vector3 arcVector = new Vector3();
+        foreach (SheepController sc in sheep) {
+          Vector3 scVector = sc.position - transform.position;
+          //Debug.DrawRay(transform.position, cmVector, Color.red);
+          float scTheta = (Mathf.Atan2(scVector.z, scVector.x) + eps) * Mathf.Rad2Deg;
+          if(delta < 0) {
+            scTheta = (scTheta + 90f + 180f) % 360f - 180f;
+          } else {
+            scTheta = (scTheta - 90f + 180f) % 360f - 180f;
+          }
+          float scThetaRad = scTheta * Mathf.Deg2Rad;
+          Vector3 scVector90 = new Vector3(Mathf.Cos(scThetaRad), 0, Mathf.Sin(scThetaRad));
+          scVector90 = scVector90 * Mathf.Pow(md_ds, 2) / scVector.sqrMagnitude;
+          arcVector += scVector90;
+          Debug.DrawRay(transform.position, scVector90 * 10, new Color(1f, 1f, 1f, 0.2f));
+        }
+        arcVector = arcVector.normalized * 10;
+        Debug.DrawRay(transform.position, arcVector, new Color(1f, 1f, 1f, 1f));
+
+        Vector3 directVector = desiredThetaVector;
+        // md_ds = nearest sheep
+        if (md_ds > 45f) {
+        //if (md_ds > 22.5f || md_ds < 12.25f) {
+        //if (directVector.magnitude > 45f || directVector.magnitude < 22.5f) {
+          desiredThetaVector = directVector;
+        } else if (md_ds > 22.5f) {
+          //desiredThetaVector = (md_ds - 22.5f) * directVector.normalized + (45f - md_ds) * arcVector.normalized;
+          desiredThetaVector = (md_ds) * directVector.normalized + (45f - md_ds) * arcVector.normalized;
+          Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+          //desiredThetaVector = arcVector;
+        /*} else if (md_ds > 12.25f) {
+          desiredThetaVector = (22.5f - md_ds) * directVector.normalized + (md_ds - 12.25f) * arcVector.normalized;
+          Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+        } else {
+          desiredThetaVector = directVector;
+          Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+        }*/
+        } else if (md_ds > 12.25f) {
+          //desiredThetaVector = (22.5f - md_ds) * directVector.normalized + (md_ds) * arcVector.normalized;
+          desiredThetaVector = directVector.normalized + arcVector.normalized;
+          Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+        } else {
+          //desiredThetaVector = directVector.normalized + arcVector.normalized;
+          desiredThetaVector = (md_ds) * directVector.normalized + (22.5f - md_ds) * arcVector.normalized;
+          Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+        }
+        //desiredThetaVector = arcVector;
+        float r_f2 = GM.DogsParametersStrombom.r_f * GM.DogsParametersStrombom.r_f;
+        foreach (Collider fenceCollider in GM.fenceColliders)
+        {
+          Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(transform.position);
+          if ((transform.position - closestPoint).sqrMagnitude < r_f2)
+          {
+            Vector3 e_ij = closestPoint - transform.position;
+            float d_ij = e_ij.magnitude;
+
+            float f_ij = Mathf.Min(.0f, (d_ij - GM.DogsParametersStrombom.r_f) / GM.DogsParametersStrombom.r_f);
+            desiredThetaVector += GM.DogsParametersStrombom.rho_f * f_ij * e_ij.normalized;
           }
         }
-        
-
-        
-        // make dog always run when collecting sheep
-        /*if (!driving)
-        {
-          dogState = Enums.DogState.running;
-          desiredV = GM.dogRunningSpeed;
-        }*/
-
+        Debug.DrawRay(transform.position, desiredThetaVector.normalized * 10, Color.yellow);
       }
+
+      
+
 
       List<ConvexHull.Point> points = new List<ConvexHull.Point>();
       foreach (SheepController sc in sheep) {
