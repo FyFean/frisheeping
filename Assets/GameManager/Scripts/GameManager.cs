@@ -117,6 +117,7 @@ public class GameManager : MonoBehaviour
   public float dogRunningSpeed = 7.5f; // Strombom original 1.5f
   public float dogMaxSpeed = 10f;
 
+  public Enums.DogBehaviour DogBehaviour;
   public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
   public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
 
