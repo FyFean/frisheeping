@@ -153,6 +153,7 @@ public class GameManager : MonoBehaviour
   public bool useFixedTimestep = false;
   public float fixedTimestep = 0.02f;
   public bool showDogPaths = false;
+  public bool randomizeDogPositions = false;
 
   // update frequency
   private float neighboursUpdateInterval = 0 * .5f;
@@ -235,6 +236,15 @@ public class GameManager : MonoBehaviour
 
     // find dogs
     dogList = new List<DogController>(FindObjectsOfType<DogController>());
+
+    if(randomizeDogPositions) {
+      foreach (DogController dc in dogList) {
+        position = new Vector3(Random.Range(-41, 47), 0f, Random.Range(-51f, 15f));
+        dc.transform.position = position;
+        dc.transform.Rotate(0, Random.Range(0f, 360f), 0);
+      }
+    }
+    
   }
 
   public void Quit()
