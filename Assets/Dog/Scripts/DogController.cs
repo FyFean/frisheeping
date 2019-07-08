@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -426,8 +426,15 @@ public class DogController : MonoBehaviour
         float d_dog = (transform.position - sc.transform.position).magnitude;
         //float priority = d_sC - Mathf.Sqrt(d_dog);
         //float priority = d_sC - d_dog;
-        float priority = d_sC * ((1f - Mathf.Abs(angleDelta/180f)) * 0.5f);
-        // sheep directly behind dog have lower priority
+        
+
+        // prioritize the sheep currently in front of the dog
+
+        // linear priority scaling based on angle, 1 in front ... 0.5 directly behind
+        //float priority = d_sC * (1f - Mathf.Abs(angleDelta/180f) * 0.5f);
+        // quadratic priority scaling based on angle, 1 in front ... 0 directly behind
+        float priority = d_sC * Mathf.Pow(1f - Mathf.Abs(angleDelta/180f) * 1f, 2);
+
         if (priority > max_priority) {
           max_priority = priority;
           Md_sC = d_sC;
