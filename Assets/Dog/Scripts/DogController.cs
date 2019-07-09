@@ -53,6 +53,8 @@ public class DogController : MonoBehaviour
     // init chosen behaviour script
     if (GM.DogBehaviour == Enums.DogBehaviour.strombom) {
       dogBehaviour = new DogBehaviourStrombom(GM, this);
+    } else if (GM.DogBehaviour == Enums.DogBehaviour.simple_doge) {
+      dogBehaviour = new DogBehaviourSimpleDoge(GM, this);
     } else if (GM.DogBehaviour == Enums.DogBehaviour.arc_v1) {
       dogBehaviour = new DogBehaviourArc1(GM, this);
     } else if (GM.DogBehaviour == Enums.DogBehaviour.arc_v2) {

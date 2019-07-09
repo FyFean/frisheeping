@@ -17,6 +17,7 @@
   public enum DogBehaviour {
     controls,
     strombom,
+    simple_doge,
     arc_v1,
     arc_v2
   }
