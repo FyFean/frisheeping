@@ -130,8 +130,8 @@ public class DogController : MonoBehaviour
     bool hit = Physics.Raycast(Cm + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
     if (hit) return false;
 #endif
-    if (GM.DogsParametersStrombom.dynamicBlindAngle) {
-      blindAngle = blindAngle + (GM.DogsParametersStrombom.runningBlindAngle - blindAngle) * (this.v / GM.dogRunningSpeed);
+    if (GM.DogsParametersOther.dynamicBlindAngle) {
+      blindAngle = blindAngle + (GM.DogsParametersOther.runningBlindAngle - blindAngle) * (this.v / GM.dogRunningSpeed);
     }
     Vector3 toSc = sc.transform.position - transform.position;
     float cos = Vector3.Dot(transform.forward, toSc.normalized);

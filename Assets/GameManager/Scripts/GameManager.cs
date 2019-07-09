@@ -117,11 +117,9 @@ public class GameManager : MonoBehaviour
   public float dogRunningSpeed = 7.5f; // Strombom original 1.5f
   public float dogMaxSpeed = 10f;
 
-  public Enums.DogBehaviour DogBehaviour;
-  public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
-  public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
+  // public bool StrombomDogs = false; // use Strömbom et al.'s shepherd
+  // public bool StrombomDogsPlus = false; // use modified Strömbom et al.'s shepherd
 
-  public bool dogRepulsion = true;
 
 
   [System.Serializable]
@@ -136,16 +134,28 @@ public class GameManager : MonoBehaviour
     public bool occlusion = false; // bahaviour based on local info only, i.e. visible non occluded Sheep
     public float blindAngle = 60f; // in degrees
 
-    public float runningBlindAngle = 300f;
-    public bool dynamicBlindAngle = false;
-
-    public bool arcMovement = false;
-    public bool arcMovement2 = true;
     public float rho_f = .5f; // relative strength of repulsion from fences
     public float r_f = 10f; // fence detection distance
 
   }
   public DPS DogsParametersStrombom;
+
+  [System.Serializable]
+
+  public class DPO
+  {
+    public float runningBlindAngle = 300f;
+    public bool dynamicBlindAngle = false;
+    public bool randomizeDogPositions = false;
+
+    public bool dogRepulsion = true;
+
+  }
+
+  public DPO DogsParametersOther;
+
+  public Enums.DogBehaviour DogBehaviour;
+
 
   [Header("Simulation")]
   public bool disableRendering = true;
@@ -153,7 +163,6 @@ public class GameManager : MonoBehaviour
   public bool useFixedTimestep = false;
   public float fixedTimestep = 0.02f;
   public bool showDogPaths = false;
-  public bool randomizeDogPositions = false;
 
   // update frequency
   private float neighboursUpdateInterval = 0 * .5f;
@@ -237,7 +246,7 @@ public class GameManager : MonoBehaviour
     // find dogs
     dogList = new List<DogController>(FindObjectsOfType<DogController>());
 
-    if(randomizeDogPositions) {
+    if(DogsParametersOther.randomizeDogPositions) {
       foreach (DogController dc in dogList) {
         position = new Vector3(Random.Range(-41, 47), 0f, Random.Range(-51f, 15f));
         dc.transform.position = position;

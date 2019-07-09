@@ -106095,10 +106095,6 @@ MonoBehaviour:
   dogWalkingSpeed: 3.5
   dogRunningSpeed: 7.5
   dogMaxSpeed: 10
-  DogBehaviour: 3
-  StrombomDogs: 0
-  StrombomDogsPlus: 1
-  dogRepulsion: 1
   DogsParametersStrombom:
     r_s: 3
     r_w: 9
@@ -106107,18 +106103,19 @@ MonoBehaviour:
     ns: 100
     occlusion: 1
     blindAngle: 60
-    runningBlindAngle: 180
-    dynamicBlindAngle: 1
-    arcMovement: 0
-    arcMovement2: 1
     rho_f: 2
     r_f: 15
+  DogsParametersOther:
+    runningBlindAngle: 300
+    dynamicBlindAngle: 1
+    randomizeDogPositions: 1
+    dogRepulsion: 1
+  DogBehaviour: 4
   disableRendering: 0
   timeScale: 1
   useFixedTimestep: 1
-  fixedTimestep: 0.04
+  fixedTimestep: 0.02
   showDogPaths: 1
-  randomizeDogPositions: 1
   maxFrameTime: 0
   avgFrameTime: 0
   simulationRunning: 0

@@ -209,7 +209,7 @@ public class DogBehaviourArc2 : DogBehaviour
 
             }
 
-            if (GM.dogRepulsion && GM.dogList.Count() > 1)
+            if (GM.DogsParametersOther.dogRepulsion && GM.dogList.Count() > 1)
             {
                 float repulsionDistance = (dc.id + 3) * 5 / 3f;
                 List<DogController> otherDogs = new List<DogController>(GM.dogList).Where(d => d != dc).ToList();
@@ -397,9 +397,9 @@ public class DogBehaviourArc2 : DogBehaviour
         if (GM.DogsParametersStrombom.occlusion)
         {
             float blindAngle = GM.DogsParametersStrombom.blindAngle;
-            if (GM.DogsParametersStrombom.dynamicBlindAngle)
+            if (GM.DogsParametersOther.dynamicBlindAngle)
             {
-                blindAngle = blindAngle + (GM.DogsParametersStrombom.runningBlindAngle - blindAngle) * (v / GM.dogRunningSpeed);
+                blindAngle = blindAngle + (GM.DogsParametersOther.runningBlindAngle - blindAngle) * (v / GM.dogRunningSpeed);
             }
             float blindAngle1 = ((theta + blindAngle / 2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
             Vector3 blindVector1 = new Vector3(Mathf.Cos(blindAngle1), 0, Mathf.Sin(blindAngle1));
