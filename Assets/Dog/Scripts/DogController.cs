@@ -24,9 +24,9 @@ public class DogController : MonoBehaviour
 
   // Movement parameters
   private float desiredV = .0f;
-  private float v;
+  public float v { get; private set; }
 
-  private float theta;
+  public float theta { get; private set; }
   private float desiredTheta = .0f;
 
   // animation bools
@@ -66,7 +66,7 @@ public class DogController : MonoBehaviour
   void Update()
   {
     if (dogBehaviour != null) {
-      DogBehaviour.Movement desiredMovement = dogBehaviour.GetDesiredMovement(new DogBehaviour.Movement(v, theta));
+      DogBehaviour.Movement desiredMovement = dogBehaviour.GetDesiredMovement();
       desiredV = desiredMovement.v;
       desiredTheta = desiredMovement.theta;
     } else {
@@ -120,30 +120,6 @@ public class DogController : MonoBehaviour
       // ensure angle remains in [-180,180)
       desiredTheta = (desiredTheta + 180f) % 360f - 180f;
     }
-  }
-
-  public bool IsVisible(SheepController sc, float blindAngle)
-  {
-#if true // experimental: test occlusion
-    Vector3 Cm = GetComponent<Rigidbody>().worldCenterOfMass;
-    Vector3 toCm = sc.GetComponent<Rigidbody>().worldCenterOfMass - Cm;
-    bool hit = Physics.Raycast(Cm + .5f * toCm.normalized, toCm.normalized, toCm.magnitude - 1f);
-    if (hit) return false;
-#endif
-    if (GM.DogsParametersOther.dynamicBlindAngle) {
-      blindAngle = blindAngle + (GM.DogsParametersOther.runningBlindAngle - blindAngle) * (this.v / GM.dogRunningSpeed);
-    }
-    Vector3 toSc = sc.transform.position - transform.position;
-    float cos = Vector3.Dot(transform.forward, toSc.normalized);
-    return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
-  }
-
-  private bool IsBehindDog(SheepController sc, Vector3 cm, Vector3 dog)
-  {
-    float d_dog = (sc.transform.position - dog).magnitude;
-    float d_cm = (sc.transform.position - cm).magnitude;
-    float d_dog_cm = (dog - cm).magnitude;
-    return Mathf.Pow(d_dog, 2) + Mathf.Pow(d_dog_cm, 2) < Mathf.Pow(d_cm, 2);
   }
 
   void DogMovement()
