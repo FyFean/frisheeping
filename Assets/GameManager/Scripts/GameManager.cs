@@ -134,8 +134,7 @@ public class GameManager : MonoBehaviour
     public bool occlusion = false; // bahaviour based on local info only, i.e. visible non occluded Sheep
     public float blindAngle = 60f; // in degrees
 
-    public float rho_f = .5f; // relative strength of repulsion from fences
-    public float r_f = 10f; // fence detection distance
+    
 
   }
   public DPS DogsParametersStrombom;
@@ -150,6 +149,9 @@ public class GameManager : MonoBehaviour
 
     public bool dogRepulsion = true;
 
+    public float rho_f = .5f; // relative strength of repulsion from fences
+    public float r_f = 10f; // fence detection distance
+    public bool modifiedRunningDistance = false;
   }
 
   public DPO DogsParametersOther;
@@ -352,12 +354,13 @@ public class GameManager : MonoBehaviour
     }
     File.AppendAllText(resultsFile, string.Format("{0},{1},{2},{3}\n", n, totalSheep, sheepHerded, timeUsed));
 
-#if true // save screenshot of end state after unsuccesful simulations
+#if false // save screenshot of end state after unsuccesful simulations
+    // not working on linux build
     if(sheepHerded < totalSheep) {
       if(disableRendering) {
           GameObject.Find("Overview Camera").GetComponent<Camera>().cullingMask = -1;
         }
-        ScreenCapture.CaptureScreenshot(Path.Combine(simulationName, string.Format("{0}.png", n, totalSheep, sheepHerded, timeUsed)));
+        ScreenCapture.CaptureScreenshot(Path.Combine(simulationName, string.Format("{0}.png", n)));
     }
 #endif
   }

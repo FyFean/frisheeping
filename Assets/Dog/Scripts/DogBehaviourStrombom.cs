@@ -80,23 +80,47 @@ public class DogBehaviourStrombom : DogBehaviour
       float r_w = GM.DogsParametersStrombom.r_w * ro; // compute true walking distance
       float r_r = GM.DogsParametersStrombom.r_r * ro; // compute true running distance
 
-      // if too close to any sheep stop and wait
-      if (md_ds < r_s)
+      if (GM.DogsParametersOther.modifiedRunningDistance)
       {
-        dc.dogState = Enums.DogState.idle;
-        desiredV = .0f;
+        // if too close to any sheep stop and wait
+        if (md_ds < r_s)
+        {
+          dc.dogState = Enums.DogState.idle;
+          desiredV = .0f;
+        }
+        // if close to any sheep start walking
+        else if (md_ds < 6f)
+        {
+          dc.dogState = Enums.DogState.walking;
+          desiredV = GM.dogWalkingSpeed;
+        }
+        else
+        {
+          // default run in current direction
+          dc.dogState = Enums.DogState.running;
+          desiredV = GM.dogRunningSpeed;
+        }
       }
-      // if close to any sheep start walking
-      else if (md_ds < r_w)
+      else
       {
-        dc.dogState = Enums.DogState.walking;
-        desiredV = GM.dogWalkingSpeed;
-      }
-      else if (md_ds > r_r)
-      {
-        // default run in current direction
-        dc.dogState = Enums.DogState.running;
-        desiredV = GM.dogRunningSpeed;
+        // if too close to any sheep stop and wait
+        if (md_ds < r_s)
+        {
+          dc.dogState = Enums.DogState.idle;
+          desiredV = .0f;
+        }
+        // if close to any sheep start walking
+        else if (md_ds < r_w)
+        {
+          dc.dogState = Enums.DogState.walking;
+          desiredV = GM.dogWalkingSpeed;
+        }
+        else if (md_ds > r_r)
+        {
+          // default run in current direction
+          dc.dogState = Enums.DogState.running;
+          desiredV = GM.dogRunningSpeed;
+        }
       }
 
       // aproximate radius of a circle

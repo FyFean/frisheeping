@@ -106100,23 +106100,24 @@ MonoBehaviour:
     r_w: 9
     r_r: 18
     local: 1
-    ns: 100
+    ns: 20
     occlusion: 1
-    blindAngle: 60
-    rho_f: 2
-    r_f: 15
+    blindAngle: 110
   DogsParametersOther:
-    runningBlindAngle: 240
-    dynamicBlindAngle: 1
+    runningBlindAngle: 180
+    dynamicBlindAngle: 0
     randomizeDogPositions: 1
     dogRepulsion: 1
+    rho_f: 0.1
+    r_f: 3
+    modifiedRunningDistance: 0
   DogBehaviour: 4
   disableRendering: 1
   timeScale: 1
   useFixedTimestep: 1
-  fixedTimestep: 0.04
+  fixedTimestep: 0.02
   showDogPaths: 1
-  simulationCount: 5
+  simulationCount: 20
   maxFrameTime: 0
   avgFrameTime: 0
   simulationRunning: 0

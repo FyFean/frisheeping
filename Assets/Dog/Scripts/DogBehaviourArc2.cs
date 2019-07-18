@@ -49,7 +49,7 @@ public class DogBehaviourArc2 : DogBehaviour
       // find distance of sheep that is nearest to the dog & distance of sheep furthest from CM
       float md_ds = Mathf.Infinity;
       SheepController sheep_c = null; // sheep furthest from CM
-                      //float Md_sC = 0;
+                                      //float Md_sC = 0;
       float Md_sC = 0.01f;
 
       float max_priority = -Mathf.Infinity;
@@ -121,29 +121,47 @@ public class DogBehaviourArc2 : DogBehaviour
       float r_w = GM.DogsParametersStrombom.r_w * ro; // compute true walking distance
       float r_r = GM.DogsParametersStrombom.r_r * ro; // compute true running distance
 
-      // if too close to any sheep stop and wait
-      if (md_ds < r_s)
+      if (GM.DogsParametersOther.modifiedRunningDistance)
       {
-        dc.dogState = Enums.DogState.idle;
-        desiredV = .0f;
+        // if too close to any sheep stop and wait
+        if (md_ds < r_s)
+        {
+          dc.dogState = Enums.DogState.idle;
+          desiredV = .0f;
+        }
+        // if close to any sheep start walking
+        else if (md_ds < 6f)
+        {
+          dc.dogState = Enums.DogState.walking;
+          desiredV = GM.dogWalkingSpeed;
+        }
+        else
+        {
+          // default run in current direction
+          dc.dogState = Enums.DogState.running;
+          desiredV = GM.dogRunningSpeed;
+        }
       }
-      // if close to any sheep start walking
-      else if (md_ds < (r_s + r_w) / 2)
+      else
       {
-        dc.dogState = Enums.DogState.walking;
-        desiredV = GM.dogWalkingSpeed;
-      }
-      //else if (md_ds < r_w)
-      else if (md_ds < r_r)
-      {
-        dc.dogState = Enums.DogState.running;
-        desiredV = GM.dogRunningSpeed;
-      }
-      else if (md_ds > r_r)
-      {
-        // default run in current direction
-        dc.dogState = Enums.DogState.running;
-        desiredV = GM.dogRunningSpeed;
+        // if too close to any sheep stop and wait
+        if (md_ds < r_s)
+        {
+          dc.dogState = Enums.DogState.idle;
+          desiredV = .0f;
+        }
+        // if close to any sheep start walking
+        else if (md_ds < r_w)
+        {
+          dc.dogState = Enums.DogState.walking;
+          desiredV = GM.dogWalkingSpeed;
+        }
+        else if (md_ds > r_r)
+        {
+          // default run in current direction
+          dc.dogState = Enums.DogState.running;
+          desiredV = GM.dogRunningSpeed;
+        }
       }
 
       // aproximate radius of a circle
@@ -165,6 +183,8 @@ public class DogBehaviourArc2 : DogBehaviour
 
         // compute position so that the GCM is on a line between the dog and the target
         Vector3 Pd = CM + (CM - barn.transform.position).normalized * ro * Mathf.Sqrt(sheep.Count); // Mathf.Min(ro * Mathf.Sqrt(sheep.Count), Md_sC);
+        // Vector3 Pd = CM + (CM - barn.transform.position).normalized * ro * 5; // Mathf.Min(ro * Mathf.Sqrt(sheep.Count), Md_sC);
+
         desiredThetaVector = Pd - dc.transform.position;
         if (desiredThetaVector.magnitude > r_w)
           desiredV = GM.dogRunningSpeed;
@@ -210,145 +230,64 @@ public class DogBehaviourArc2 : DogBehaviour
       }
 
 
-        Vector3 cmVector = CM - dc.transform.position;
-        Debug.DrawRay(dc.transform.position, cmVector, Color.red);
-        float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
+      Vector3 cmVector = CM - dc.transform.position;
+      Debug.DrawRay(dc.transform.position, cmVector, Color.red);
+      float cmTheta = (Mathf.Atan2(cmVector.z, cmVector.x) + eps) * Mathf.Rad2Deg;
 
-        desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
-        float delta = cmTheta - desiredTheta;
-        delta = (delta + 180f) % 360f - 180f;
-        Vector3 arcVector = new Vector3();
-        foreach (SheepController sc in sheep)
+      desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
+      float delta = cmTheta - desiredTheta;
+      delta = (delta + 180f) % 360f - 180f;
+      Vector3 arcVector = new Vector3();
+      foreach (SheepController sc in sheep)
+      {
+        Vector3 scVector = sc.position - dc.transform.position;
+        //Debug.DrawRay(dc.transform.position, cmVector, Color.red);
+        float scTheta = (Mathf.Atan2(scVector.z, scVector.x) + eps) * Mathf.Rad2Deg;
+        if (delta < 0)
         {
-          Vector3 scVector = sc.position - dc.transform.position;
-          //Debug.DrawRay(dc.transform.position, cmVector, Color.red);
-          float scTheta = (Mathf.Atan2(scVector.z, scVector.x) + eps) * Mathf.Rad2Deg;
-          if (delta < 0)
-          {
-            scTheta = (scTheta + 90f + 180f) % 360f - 180f;
-          }
-          else
-          {
-            scTheta = (scTheta - 90f + 180f) % 360f - 180f;
-          }
-          float scThetaRad = scTheta * Mathf.Deg2Rad;
-          Vector3 scVector90 = new Vector3(Mathf.Cos(scThetaRad), 0, Mathf.Sin(scThetaRad));
-          scVector90 = scVector90 * Mathf.Pow(md_ds, 2) / scVector.sqrMagnitude;
-          arcVector += scVector90;
-          Debug.DrawRay(dc.transform.position, scVector90 * 10, new Color(1f, 1f, 1f, 0.2f));
-        }
-        arcVector = arcVector.normalized * 10;
-        Debug.DrawRay(dc.transform.position, arcVector, new Color(1f, 1f, 1f, 1f));
-
-        Vector3 directVector = desiredThetaVector;
-        // md_ds = nearest sheep
-        if (md_ds > 45f)
-        {
-          //if (md_ds > 22.5f || md_ds < 12.25f) {
-          //if (directVector.magnitude > 45f || directVector.magnitude < 22.5f) {
-          desiredThetaVector = directVector;
-        }
-        else if (md_ds > 22.5f)
-        {
-          //desiredThetaVector = (md_ds - 22.5f) * directVector.normalized + (45f - md_ds) * arcVector.normalized;
-          desiredThetaVector = (md_ds) * directVector.normalized + (45f - md_ds) * arcVector.normalized;
-          Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.cyan);
-          //desiredThetaVector = arcVector;
-          /*} else if (md_ds > 12.25f) {
-            desiredThetaVector = (22.5f - md_ds) * directVector.normalized + (md_ds - 12.25f) * arcVector.normalized;
-            Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.cyan);
-          } else {
-            desiredThetaVector = directVector;
-            Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.cyan);
-          }*/
-        }
-        else if (md_ds > 12.25f)
-        {
-          //desiredThetaVector = (22.5f - md_ds) * directVector.normalized + (md_ds) * arcVector.normalized;
-          desiredThetaVector = directVector.normalized + arcVector.normalized;
-          Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+          scTheta = (scTheta + 90f + 180f) % 360f - 180f;
         }
         else
         {
-          //desiredThetaVector = directVector.normalized + arcVector.normalized;
-          desiredThetaVector = (md_ds) * directVector.normalized + (22.5f - md_ds) * arcVector.normalized;
-          Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.cyan);
+          scTheta = (scTheta - 90f + 180f) % 360f - 180f;
         }
-        //desiredThetaVector = arcVector;
-        float r_f2 = GM.DogsParametersStrombom.r_f * GM.DogsParametersStrombom.r_f;
-        foreach (Collider fenceCollider in GM.fenceColliders)
+        float scThetaRad = scTheta * Mathf.Deg2Rad;
+        Vector3 scVector90 = new Vector3(Mathf.Cos(scThetaRad), 0, Mathf.Sin(scThetaRad));
+        scVector90 = scVector90 * Mathf.Pow(md_ds, 2) / scVector.sqrMagnitude;
+        arcVector += scVector90;
+        Debug.DrawRay(dc.transform.position, scVector90 * 10, new Color(1f, 1f, 1f, 0.2f));
+      }
+      arcVector = arcVector.normalized;
+      Debug.DrawRay(dc.transform.position, arcVector.normalized * 10, new Color(1f, 1f, 1f, 1f));
+
+      Vector3 directVector = desiredThetaVector.normalized;
+
+
+      // repulsion from fences
+      float r_f2 = GM.DogsParametersOther.r_f * GM.DogsParametersOther.r_f;
+      Vector3 fenceRepulsionVector = new Vector3();
+      foreach (Collider fenceCollider in GM.fenceColliders)
+      {
+        Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(dc.transform.position);
+        if ((dc.transform.position - closestPoint).sqrMagnitude < r_f2)
         {
-          Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(dc.transform.position);
-          if ((dc.transform.position - closestPoint).sqrMagnitude < r_f2)
-          {
-            Vector3 e_ij = closestPoint - dc.transform.position;
-            float d_ij = e_ij.magnitude;
+          Vector3 e_ij = closestPoint - dc.transform.position;
+          float d_ij = e_ij.magnitude;
 
-            float f_ij = Mathf.Min(.0f, (d_ij - GM.DogsParametersStrombom.r_f) / GM.DogsParametersStrombom.r_f);
-            desiredThetaVector += GM.DogsParametersStrombom.rho_f * f_ij * e_ij.normalized;
-          }
-        }
-        Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.yellow);
+          float f_ij = Mathf.Min(.0f, (d_ij - GM.DogsParametersOther.r_f) / GM.DogsParametersOther.r_f);
 
-
-
-# if false
-      List<ConvexHull.Point> points = new List<ConvexHull.Point>();
-      foreach (SheepController sc in sheep)
-      {
-        points.Add(new ConvexHull.Point(sc.position.x, sc.position.z));
-      }
-      List<ConvexHull.Point> hull = ConvexHull.convexHull(points);
-      ConvexHull.Point prev = hull.Last();
-      foreach (ConvexHull.Point p in hull)
-      {
-        Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.4f));
-        prev = p;
-      }
-      List<ConvexHull.Point> expandedHull = new List<ConvexHull.Point>();
-      if (hull.Count > 1)
-      {
-        for (int i = 0; i < hull.Count(); i++)
-        {
-          prev = i > 0 ? hull[i - 1] : hull.Last();
-          ConvexHull.Point next = i < hull.Count - 1 ? hull[i + 1] : hull[0];
-          float prevAngle = (Mathf.Atan2(prev.y - hull[i].y, prev.x - hull[i].x) + eps) * Mathf.Rad2Deg;
-          float prevPlus90 = (prevAngle + 90f + 180f) % 360f - 180f;
-          float nextAngle = (Mathf.Atan2(next.y - hull[i].y, next.x - hull[i].x) + eps) * Mathf.Rad2Deg;
-          float nextMinus90 = (nextAngle - 90f + 180f) % 360f - 180f;
-          float delta12 = (nextMinus90 - prevPlus90 + 720f) % 360f;
-          int nSteps = (int)(delta12 / 30f) + 1;
-          Vector3 currentPointVector = new Vector3(hull[i].x, 0, hull[i].y);
-          for (int j = 0; j <= nSteps; j++)
-          {
-            float angle = (prevPlus90 + j * (delta12 / nSteps)) * Mathf.Deg2Rad;
-            Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
-            ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
-            expandedHull.Add(p);
-
-          }
+          fenceRepulsionVector += f_ij * e_ij.normalized;
         }
       }
-      else
-      {
-        Vector3 currentPointVector = new Vector3(hull[0].x, 0, hull[0].y);
-        for (int i = 0; i < 12; i++)
-        {
-          float angle = i * 30 * Mathf.Deg2Rad;
-          Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
-          ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
-          expandedHull.Add(p);
-        }
-      }
+      Debug.DrawRay(dc.transform.position, fenceRepulsionVector, new Color(0.5f, 1.0f, 0.5f));
 
-      prev = expandedHull.Last();
-      foreach (ConvexHull.Point p in expandedHull)
-      {
-        Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.7f));
-        prev = p;
-      }
-      //Debug.DrawCircle(sc.transform.position, .5f, new Color(1f, 0f, 0f, 1f));
-#endif
+      desiredThetaVector = directVector * directVectorWeight(md_ds) + arcVector * arcVectorWeight(md_ds) + fenceRepulsionVector * GM.DogsParametersOther.rho_f;
+
+
+
+      Debug.DrawRay(dc.transform.position, desiredThetaVector.normalized * 10, Color.yellow);
+
+
 
     }
     else // no visible sheep
@@ -363,29 +302,89 @@ public class DogBehaviourArc2 : DogBehaviour
     }
 
 
-    if (GM.DogsParametersStrombom.occlusion)
-    {
-      float blindAngle = GM.DogsParametersStrombom.blindAngle;
-      if (GM.DogsParametersOther.dynamicBlindAngle)
-      {
-        blindAngle = blindAngle + (GM.DogsParametersOther.runningBlindAngle - blindAngle) * (dc.v / GM.dogRunningSpeed);
-      }
-      float blindAngle1 = ((dc.theta + blindAngle / 2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
-      Vector3 blindVector1 = new Vector3(Mathf.Cos(blindAngle1), 0, Mathf.Sin(blindAngle1));
-      Debug.DrawRay(dc.transform.position, blindVector1 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
-      float blindAngle2 = ((dc.theta - blindAngle / 2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
-      Vector3 blindVector2 = new Vector3(Mathf.Cos(blindAngle2), 0, Mathf.Sin(blindAngle2));
-      Debug.DrawRay(dc.transform.position, blindVector2 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
-    }
 
     // extract desired heading
     desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
     /* end of behaviour logic */
 
 
+    if (GM.DogsParametersStrombom.occlusion) drawBlindAngle();
 
 
     Movement desiredMovement = new Movement(desiredV, desiredTheta);
     return desiredMovement;
+  }
+
+  private void drawBlindAngle()
+  {
+    float blindAngle = GM.DogsParametersStrombom.blindAngle;
+    if (GM.DogsParametersOther.dynamicBlindAngle)
+    {
+      blindAngle = blindAngle + (GM.DogsParametersOther.runningBlindAngle - blindAngle) * (dc.v / GM.dogRunningSpeed);
+    }
+    float blindAngle1 = ((dc.theta + blindAngle / 2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
+    Vector3 blindVector1 = new Vector3(Mathf.Cos(blindAngle1), 0, Mathf.Sin(blindAngle1));
+    Debug.DrawRay(dc.transform.position, blindVector1 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
+    float blindAngle2 = ((dc.theta - blindAngle / 2 + 360f) % 360f - 180f) * Mathf.Deg2Rad;
+    Vector3 blindVector2 = new Vector3(Mathf.Cos(blindAngle2), 0, Mathf.Sin(blindAngle2));
+    Debug.DrawRay(dc.transform.position, blindVector2 * 100f, new Color(0.8f, 0.8f, 0.8f, 0.2f));
+  }
+
+  private void drawConvexHull(List<SheepController> sheep)
+  {
+    List<ConvexHull.Point> points = new List<ConvexHull.Point>();
+    foreach (SheepController sc in sheep)
+    {
+      points.Add(new ConvexHull.Point(sc.position.x, sc.position.z));
+    }
+    List<ConvexHull.Point> hull = ConvexHull.convexHull(points);
+    ConvexHull.Point prev = hull.Last();
+    foreach (ConvexHull.Point p in hull)
+    {
+      Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.4f));
+      prev = p;
+    }
+    List<ConvexHull.Point> expandedHull = new List<ConvexHull.Point>();
+    if (hull.Count > 1)
+    {
+      for (int i = 0; i < hull.Count(); i++)
+      {
+        prev = i > 0 ? hull[i - 1] : hull.Last();
+        ConvexHull.Point next = i < hull.Count - 1 ? hull[i + 1] : hull[0];
+        float prevAngle = (Mathf.Atan2(prev.y - hull[i].y, prev.x - hull[i].x)) * Mathf.Rad2Deg;
+        float prevPlus90 = (prevAngle + 90f + 180f) % 360f - 180f;
+        float nextAngle = (Mathf.Atan2(next.y - hull[i].y, next.x - hull[i].x)) * Mathf.Rad2Deg;
+        float nextMinus90 = (nextAngle - 90f + 180f) % 360f - 180f;
+        float delta12 = (nextMinus90 - prevPlus90 + 720f) % 360f;
+        int nSteps = (int)(delta12 / 30f) + 1;
+        Vector3 currentPointVector = new Vector3(hull[i].x, 0, hull[i].y);
+        for (int j = 0; j <= nSteps; j++)
+        {
+          float angle = (prevPlus90 + j * (delta12 / nSteps)) * Mathf.Deg2Rad;
+          Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
+          ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
+          expandedHull.Add(p);
+
+        }
+      }
+    }
+    else
+    {
+      Vector3 currentPointVector = new Vector3(hull[0].x, 0, hull[0].y);
+      for (int i = 0; i < 12; i++)
+      {
+        float angle = i * 30 * Mathf.Deg2Rad;
+        Vector3 vec = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 5f + currentPointVector;
+        ConvexHull.Point p = new ConvexHull.Point(vec.x, vec.z);
+        expandedHull.Add(p);
+      }
+    }
+
+    prev = expandedHull.Last();
+    foreach (ConvexHull.Point p in expandedHull)
+    {
+      Debug.DrawRay(new Vector3(prev.x, 0, prev.y), new Vector3(p.x - prev.x, 0, p.y - prev.y), new Color(1f, 0f, 1f, 0.7f));
+      prev = p;
+    }
   }
 }
