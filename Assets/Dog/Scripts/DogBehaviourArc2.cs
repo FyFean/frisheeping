@@ -7,6 +7,41 @@ public class DogBehaviourArc2 : DogBehaviour
 {
 
   public DogBehaviourArc2(GameManager GM, DogController dc) : base(GM, dc) { }
+
+  // weight direct and arc vectors according to distance to closest sheep
+  private float r_2s = 45;
+  private float r_s = 22.5f;
+  private float r_sS = 12.25f;
+
+  private float directVectorWeight(float d)
+  {
+    if (d > r_2s) return 1;
+    if (d > r_s) return 0.5f + ((d - r_s) / (r_2s - r_s)) * 0.5f;
+    if (d > r_sS) return 0.5f;
+    return (d / r_sS) * 0.5f;
+  }
+
+  private float arcVectorWeight(float d)
+  {
+    if (d > r_2s) return 0;
+    if (d > r_s) return ((r_2s - d) / (r_2s - r_s)) * 0.5f;
+    if (d > r_sS) return 0.5f;
+    return 0.5f + ((r_sS - d) / r_sS) * 0.5f;
+  }
+
+  private float directVectorWeight2(float d)
+  {
+    if (d > r_s) return 1;
+    return d / r_s;
+  }
+
+  private float arcVectorWeight2(float d)
+  {
+    if (d > r_s) return 0;
+    return (r_s - d) / r_s;
+  }
+
+
   public override DogBehaviour.Movement GetDesiredMovement()
   {
     float timestep;
@@ -281,7 +316,9 @@ public class DogBehaviourArc2 : DogBehaviour
       }
       Debug.DrawRay(dc.transform.position, fenceRepulsionVector, new Color(0.5f, 1.0f, 0.5f));
 
-      desiredThetaVector = directVector * directVectorWeight(md_ds) + arcVector * arcVectorWeight(md_ds) + fenceRepulsionVector * GM.DogsParametersOther.rho_f;
+      // desiredThetaVector = directVector * directVectorWeight(md_ds) + arcVector * arcVectorWeight(md_ds) + fenceRepulsionVector * GM.DogsParametersOther.rho_f;
+      desiredThetaVector = directVector * directVectorWeight2(md_ds) + arcVector * arcVectorWeight2(md_ds) + fenceRepulsionVector * GM.DogsParametersOther.rho_f;
+
 
 
 
