@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using UnityEngine;
+using System.Collections.Generic;
 using System.Linq;
+using csDelaunay;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.IO;
 
 public class GameManager : MonoBehaviour
 {
@@ -493,14 +497,12 @@ public class GameManager : MonoBehaviour
                             case Enums.SheepState.idle:
                                 if (neighbour.previousSheepState == Enums.SheepState.running)
                                     sc.m_toidle++;
-                                // decrease influence of idle sheep with their distance
-                                // sc.m_toidle += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i);
+                                //sc.m_toidle += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of idle sheep with their distance
                                 sc.m_idle++;
                                 break;
                             case Enums.SheepState.running:
                                 sc.m_running++;
-                                // decrease influence of running sheep with their distance
-                                // sc.m_running += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); 
+                                // sc.m_running += 1f - Mathf.Max(0, (neighbour.transform.position - sc.transform.position).magnitude / l_i); // decrease influence of running sheep with their distance
                                 break;
                         }
 
