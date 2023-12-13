@@ -1,5 +1,6 @@
 ﻿#define DEBUG_ON
 
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -170,12 +171,12 @@ public class SheepController : MonoBehaviour
             if (fur.materials.Length < 2) fur.material.color = cottonColor;
             else fur.materials[1].color = cottonColor;
         }
-        //Debug.Log("start");
+        Debug.Log("start");
     }
 
     void SetSpeed()
     {
-        //Debug.Log("loop");
+        Debug.Log("loop");
 #if DEBUG_ON
         Color cottonColor = Color.white;
 #endif
@@ -258,7 +259,7 @@ public class SheepController : MonoBehaviour
 
     void Update()
     {
-        //Debug.Log("hi000");
+        Debug.Log("hi000");
         float timestep;
         if (GM.useFixedTimestep)
         {
@@ -347,7 +348,7 @@ public class SheepController : MonoBehaviour
 
     void UpdateState()
     {
-        //Debug.Log("hi1");
+        Debug.Log("hi1");
         float timestep;
         if (GM.useFixedTimestep)
         {
@@ -509,7 +510,7 @@ public class SheepController : MonoBehaviour
                 }
             }
         }
-        //Debug.Log("hi2");
+        Debug.Log("hi2");
         if (sheepState == Enums.SheepState.walking)
         {
             foreach (SheepController neighbour in metricNeighbours)
@@ -686,7 +687,7 @@ public class SheepController : MonoBehaviour
             // extract desired heading
             desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
         }
-        //Debug.Log("hi3");
+        Debug.Log("hi3");
         SetSpeed();
     }
 }
