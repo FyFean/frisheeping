@@ -19,12 +19,12 @@ public enum DecisionModel
 
 public class Rule
 {
-    Characteristic[] input_characteristic;
-    string[] input_values;
-    DecisionModel output_decisions;
-    string output_values;
-    string type;
-    float weight;
+    public Characteristic[] input_characteristic;
+    public string[] input_values;
+    public DecisionModel output_decisions;
+    public string output_values;
+    public string type;
+    public float weight;
 
     public Rule(string type, Characteristic[] characteristic, string[] input_values, DecisionModel dm, string output_values, float weight)
     {
@@ -124,24 +124,50 @@ public class FuzzyLogic
 
     public FuzzyLogic()
     {
-        FuzzyInput = new Dictionary<Characteristic, float>();
-        FuzzyInput.Add(Characteristic.Extraversion, 10f);
-        FuzzyInput.Add(Characteristic.Adventurous, 10f);
-        FuzzyInput.Add(Characteristic.Agreeableness, 10f);
+        this.FuzzyInput = new Dictionary<Characteristic, float>();
+        this.FuzzyInput.Add(Characteristic.Extraversion, 10f);
+        this.FuzzyInput.Add(Characteristic.Adventurous, 10f);
+        this.FuzzyInput.Add(Characteristic.Agreeableness, 10f);
 
-        rules = new Rule[]
+        this.rules = new Rule[]
         {
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f),
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f),
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f)
         };
+    }
 
-        float[] centroids = CalculateCentroids
 
+    float[] Fuzzyfy() {
+        DecisionModel[] allValues = (DecisionModel[])Enum.GetValues(typeof(DecisionModel));
+        Dictionary<DecisionModel, Dictionary<string, float>> outputDict = new Dictionary<DecisionModel, Dictionary<string, float>>();
+
+        foreach (DecisionModel value in allValues)
+        {
+            Console.WriteLine(value);
+            Dictionary<string, float> innerDict = new Dictionary<string, float>
+            {
+                { "positive", 0f },
+                { "negative", 0f }
+            };
+            outputDict.Add(value, innerDict);
+        }
+
+        for (int i = 0; i < this.rules.Length; i++)
+        {
+            Rule curr_rule = this.rules[i];
+            float f_val = curr_rule.evaluateRule(this.FuzzyInput);
+            // TODO: weight, ce se isto pravilo veckrat uporabi?
+            outputDict[curr_rule.output_decisions][curr_rule.output_values] = outputDict[curr_rule.output_decisions][curr_rule.output_values] + f_val;
+        }
+
+        float[] centroids = DefuzzifyCentroids(outputDict);
+
+        return centroids;
     }
 
     // Combine fuzzy outputs using the centroid method (defuzzification)
-    float[] CalculateCentroids(Dictionary<DecisionModel, Dictionary<string, float>> fuzzySets)
+    float[] DefuzzifyCentroids(Dictionary<DecisionModel, Dictionary<string, float>> fuzzySets)
     {
         List<float> centroids = new List<float>();
 
