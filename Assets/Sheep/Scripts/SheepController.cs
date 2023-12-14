@@ -96,6 +96,8 @@ public class SheepController : MonoBehaviour
     private float desiredTheta = .0f;
     private float theta;
 
+    // 
+
 
     // Ginelli parameters - overriden by GM
     public float n_idle = .0f, n_walking = .0f, m_toidle = .0f, m_idle = .0f, m_running = .0f;
