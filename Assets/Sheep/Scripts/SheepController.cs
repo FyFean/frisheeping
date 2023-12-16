@@ -80,6 +80,7 @@ public class SheepController : MonoBehaviour
 
     // Sheeps Animator Controller
     public Animator anim;
+    public FuzzyLogic fuzzyLogic;
 
     // Fur parts
     public Renderer[] sheepCottonParts;
@@ -129,6 +130,8 @@ public class SheepController : MonoBehaviour
     {
         // GameManager
         GM = FindObjectOfType<GameManager>();
+
+       this.fuzzyLogic = new FuzzyLogic();
 
         // random state
         sheepState = (Enums.SheepState)Random.Range(0, 3);
@@ -598,8 +601,28 @@ public class SheepController : MonoBehaviour
         return cos > Mathf.Cos((180f - blindAngle / 2f) * Mathf.Deg2Rad);
     }
 
-    void StrombomUpdate()
+    //TODO: dodaj tale nas update function v kodo (tam kjer se klice strombom) in poglej, kako se spreminja speed/... 
+    // glede na nasi 2 vrednosti
+    void FuzzyUpdate()
     {
+        //float[] fuzzy_values = fuzzyLogic.fuzzyfy();
+        //for (int i = 0; i < fuzzy_values.Length; i++)
+        //{
+        //    Debug.Log($"fuzzy_values[{i}] = {fuzzy_values[i]}");
+        //}
+        float[] fuzzy_values = { 10.0f, 2.0f };
+    }
+
+    void StrombomUpdate()
+    {   
+        // TODO: ko dobimo defuzz. vrednosti, je potrebno ustrezno posodobiti model
+        //float[] fuzzy_values = fuzzyLogic.fuzzyfy();
+        //for (int i = 0; i < fuzzy_values.Length; i++)
+        //{
+        //    Debug.Log($"fuzzy_values[{i}] = {fuzzy_values[i]}");
+        //}
+        //float[] fuzzy_values = {10.0, 2.0}
+
         // desired heading in vector form
         Vector3 desiredThetaVector = new Vector3();
 

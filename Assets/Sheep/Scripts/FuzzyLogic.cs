@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum Characteristic
 {
@@ -72,9 +73,9 @@ public class Rule
                 switch (single_val)
                 {
                     case "positive":
-                        return ServicePoor(value);
+                        return TriangularMembership(value, 0, 30, 60);
                     case "negative":
-                        return ServicePoor(value);
+                        return TriangularMembership(value, 40, 70, 100);
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -82,9 +83,9 @@ public class Rule
                 switch (single_val)
                 {
                     case "positive":
-                        return FoodDelicious(value);
+                        return SigmoidalMembership(value, 10, 10);
                     case "negative":
-                        return FoodDelicious(value);
+                        return SigmoidalMembership(value, 10, 10);
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -92,9 +93,9 @@ public class Rule
                 switch (single_val)
                 {
                     case "positive":
-                        return FoodDelicious(value);
+                        return TriangularMembership(value, 0, 20, 40);
                     case "negative":
-                        return FoodDelicious(value);
+                        return TriangularMembership(value, 10, 60, 100);
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -103,17 +104,31 @@ public class Rule
         }
     }
 
-    // Fuzzy membership functions
-    private float ServicePoor(float service)
+    float TriangularMembership(float x, float a, float b, float c)
     {
-        // Implement the membership function for poor service
-        return 0f; // Placeholder value
+        if (x <= a || x > c) return 0.0f;
+        if (a < x && x <= b) return (x - a) / (b - a);
+        if (b < x && x <= c) return (c - x) / (c - b);
+        return 0.0f;
     }
 
-    private float FoodDelicious(float food)
+    float TrapezoidalMembership(float x, float a, float b, float c, float d)
     {
-        // Implement the membership function for delicious food
-        return 0f; // Placeholder value
+        if (x <= a || x > d) return 0.0f;
+        if (a < x && x <= b) return (x - a) / (b - a);
+        if (b < x && x <= c) return 1.0f;
+        if (c < x && x <= d) return (d - x) / (d - c);
+        return 0.0f;
+    }
+
+    float GaussianMembership(float x, float c, float sigma)
+    {
+        return Mathf.Exp(-0.5f * Mathf.Pow((x - c) / sigma, 2));
+    }
+
+    float SigmoidalMembership(float x, float c, float alpha)
+    {
+        return 1.0f / (1.0f + Mathf.Exp(-alpha * (x - c)));
     }
 }
 
@@ -124,27 +139,31 @@ public class FuzzyLogic
 
     public FuzzyLogic()
     {
-        this.FuzzyInput = new Dictionary<Characteristic, float>();
-        this.FuzzyInput.Add(Characteristic.Extraversion, 10f);
-        this.FuzzyInput.Add(Characteristic.Adventurous, 10f);
-        this.FuzzyInput.Add(Characteristic.Agreeableness, 10f);
+        foreach (Characteristic characteristic in Enum.GetValues(typeof(Characteristic)))
+        {
+            float randomValue = (float) Random.Range(0, 101);
+            FuzzyInput.Add(characteristic, randomValue);
+        }
 
+
+        // TODO: NOAH PRAVILA
+        // TODO: UPDATE LOGIKE TAKO, DA BO VRACALA SPEED IN ANGLE PREMIKANJA (ARRAY 2 FLOATOV)
         this.rules = new Rule[]
         {
-            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f),
-            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f),
-            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "cheap", 1.0f)
+            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "negative"}, DecisionModel.NeighborDistance, "positive", 1.0f),
+            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "positive", 1.0f),
+            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "negative", 1.0f)
         };
     }
 
 
-    float[] Fuzzyfy() {
+    public float[] fuzzyfy() {
         DecisionModel[] allValues = (DecisionModel[])Enum.GetValues(typeof(DecisionModel));
         Dictionary<DecisionModel, Dictionary<string, float>> outputDict = new Dictionary<DecisionModel, Dictionary<string, float>>();
 
         foreach (DecisionModel value in allValues)
         {
-            Console.WriteLine(value);
+            Debug.Log(value);
             Dictionary<string, float> innerDict = new Dictionary<string, float>
             {
                 { "positive", 0f },
@@ -157,10 +176,12 @@ public class FuzzyLogic
         {
             Rule curr_rule = this.rules[i];
             float f_val = curr_rule.evaluateRule(this.FuzzyInput);
-            // TODO: weight, ce se isto pravilo veckrat uporabi?
+            // TODO: weight, ce se isto pravilo veckrat uporabi + logika, ce je za isti output vec pravil // average
             outputDict[curr_rule.output_decisions][curr_rule.output_values] = outputDict[curr_rule.output_decisions][curr_rule.output_values] + f_val;
+            // TODO: fuzzyfy output
         }
 
+        //TODO: preveri, ce dela ok... verjetno treba se kaj dodati
         float[] centroids = DefuzzifyCentroids(outputDict);
 
         return centroids;
