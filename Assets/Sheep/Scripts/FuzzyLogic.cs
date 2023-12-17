@@ -9,13 +9,15 @@ public enum Characteristic
     Extraversion,
     Adventurous,
     Agreeableness,
-    // other characteristics...
+    Angle,
+    Speed,
 }
 
 public enum DecisionModel
 {
     NeighborDistance,
-    // other characteristics...
+    Angle,
+    Speed,
 }
 
 public class Rule
@@ -99,6 +101,26 @@ public class Rule
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
+            case Characteristic.Speed:
+                switch (single_val)
+                {
+                    case "positive":
+                        return TriangularMembership(value, 0, 20, 40);
+                    case "negative":
+                        return TriangularMembership(value, 10, 60, 100);
+                    default:
+                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+                }
+            case Characteristic.Angle:
+                switch (single_val)
+                {
+                    case "positive":
+                        return TriangularMembership(value, 0, 20, 40);
+                    case "negative":
+                        return TriangularMembership(value, 10, 60, 100);
+                    default:
+                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+                }
             default:
                 throw new ArgumentException($"Unsupported characteristic: {characteristic}");
         }
@@ -139,46 +161,65 @@ public class FuzzyLogic
 
     public FuzzyLogic()
     {
+        this.FuzzyInput = new Dictionary<Characteristic, float>();
         foreach (Characteristic characteristic in Enum.GetValues(typeof(Characteristic)))
         {
-            float randomValue = (float) Random.Range(0, 101);
-            FuzzyInput.Add(characteristic, randomValue);
+            float randomValue = (float)Random.Range(0, 101);
+            this.FuzzyInput.Add(characteristic, randomValue);
         }
 
 
         // TODO: NOAH PRAVILA
-        // TODO: UPDATE LOGIKE TAKO, DA BO VRACALA SPEED IN ANGLE PREMIKANJA (ARRAY 2 FLOATOV)
         this.rules = new Rule[]
         {
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "negative"}, DecisionModel.NeighborDistance, "positive", 1.0f),
-            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "positive", 1.0f),
+            new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.Angle, "positive", 1.0f),
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] { "positive", "negative"}, DecisionModel.NeighborDistance, "negative", 1.0f)
         };
     }
 
 
-    public float[] fuzzyfy() {
+    public float[] fuzzyfy(float angle, float speed)
+    {
+        this.FuzzyInput[Characteristic.Angle] = angle;
+        this.FuzzyInput[Characteristic.Speed] = speed;
         DecisionModel[] allValues = (DecisionModel[])Enum.GetValues(typeof(DecisionModel));
         Dictionary<DecisionModel, Dictionary<string, float>> outputDict = new Dictionary<DecisionModel, Dictionary<string, float>>();
+        Dictionary<DecisionModel, Dictionary<string, float>> countDict = new Dictionary<DecisionModel, Dictionary<string, float>>();
 
         foreach (DecisionModel value in allValues)
         {
-            Debug.Log(value);
             Dictionary<string, float> innerDict = new Dictionary<string, float>
             {
                 { "positive", 0f },
                 { "negative", 0f }
             };
             outputDict.Add(value, innerDict);
+            countDict.Add(value, innerDict);
         }
 
         for (int i = 0; i < this.rules.Length; i++)
         {
             Rule curr_rule = this.rules[i];
             float f_val = curr_rule.evaluateRule(this.FuzzyInput);
-            // TODO: weight, ce se isto pravilo veckrat uporabi + logika, ce je za isti output vec pravil // average
-            outputDict[curr_rule.output_decisions][curr_rule.output_values] = outputDict[curr_rule.output_decisions][curr_rule.output_values] + f_val;
+            outputDict[curr_rule.output_decisions][curr_rule.output_values] += f_val;
+            countDict[curr_rule.output_decisions][curr_rule.output_values] += 1.0f;
             // TODO: fuzzyfy output
+        }
+
+        // calculate average
+        foreach (DecisionModel decision in outputDict.Keys)
+        {
+            Dictionary<string, float> innerOutputDict = outputDict[decision];
+            Dictionary<string, float> innerCountDict = countDict[decision];
+
+            foreach (string outputKey in innerOutputDict.Keys.ToList())
+            {
+                if (innerCountDict[outputKey] > 0)
+                {
+                    innerOutputDict[outputKey] /= innerCountDict[outputKey];
+                }
+            }
         }
 
         //TODO: preveri, ce dela ok... verjetno treba se kaj dodati
@@ -210,15 +251,14 @@ public class FuzzyLogic
         foreach (var innerPair in fuzzySet)
         {
             float grade = innerPair.Value;
-            float value = Convert.ToSingle(innerPair.Key); // Assuming the keys are convertible to float
 
-            numerator += value * grade;
+            numerator += grade;
             denominator += 1.0f; // Assuming equal weight for all values
         }
 
+        // Handle division by zero
         if (denominator == 0.0f)
         {
-            // Handle division by zero
             return 0.0f;
         }
 

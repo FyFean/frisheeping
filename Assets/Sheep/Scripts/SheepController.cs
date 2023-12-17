@@ -131,7 +131,7 @@ public class SheepController : MonoBehaviour
         // GameManager
         GM = FindObjectOfType<GameManager>();
 
-       this.fuzzyLogic = new FuzzyLogic();
+        this.fuzzyLogic = new FuzzyLogic();
 
         // random state
         sheepState = (Enums.SheepState)Random.Range(0, 3);
@@ -176,12 +176,10 @@ public class SheepController : MonoBehaviour
             if (fur.materials.Length < 2) fur.material.color = cottonColor;
             else fur.materials[1].color = cottonColor;
         }
-        Debug.Log("start");
     }
 
     void SetSpeed()
     {
-        Debug.Log("loop");
 #if DEBUG_ON
         Color cottonColor = Color.white;
 #endif
@@ -264,7 +262,6 @@ public class SheepController : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("hi000");
         float timestep;
         if (GM.useFixedTimestep)
         {
@@ -353,7 +350,6 @@ public class SheepController : MonoBehaviour
 
     void UpdateState()
     {
-        Debug.Log("hi1");
         float timestep;
         if (GM.useFixedTimestep)
         {
@@ -515,7 +511,6 @@ public class SheepController : MonoBehaviour
                 }
             }
         }
-        Debug.Log("hi2");
         if (sheepState == Enums.SheepState.walking)
         {
             foreach (SheepController neighbour in metricNeighbours)
@@ -614,13 +609,13 @@ public class SheepController : MonoBehaviour
     }
 
     void StrombomUpdate()
-    {   
+    {
         // TODO: ko dobimo defuzz. vrednosti, je potrebno ustrezno posodobiti model
-        //float[] fuzzy_values = fuzzyLogic.fuzzyfy();
-        //for (int i = 0; i < fuzzy_values.Length; i++)
-        //{
-        //    Debug.Log($"fuzzy_values[{i}] = {fuzzy_values[i]}");
-        //}
+        float[] fuzzy_values = fuzzyLogic.fuzzyfy(1.0f, 0.1f);
+        for (int i = 0; i < fuzzy_values.Length; i++)
+        {
+            Debug.Log("Array elements: " + string.Join(", ", fuzzy_values));
+        }
         //float[] fuzzy_values = {10.0, 2.0}
 
         // desired heading in vector form
@@ -712,7 +707,6 @@ public class SheepController : MonoBehaviour
             // extract desired heading
             desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
         }
-        Debug.Log("hi3");
         SetSpeed();
     }
 }
