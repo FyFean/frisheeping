@@ -277,7 +277,7 @@ public class FuzzyLogic
     {
         N_SAMPLES = Globals.N_SAMPLES;
         this.FuzzyInput = new Dictionary<Characteristic, float>();
-        // initial crisp value of character (0 to 100) - value before fuzzification
+        // initial crisp value of characteristic (0 to 100) - value before fuzzification
         foreach (Characteristic characteristic in Enum.GetValues(typeof(Characteristic)))
         {
             float randomValue = (float)Random.Range(0, 101);
@@ -289,6 +289,7 @@ public class FuzzyLogic
         this.FuzzyInput[Characteristic.SheepRepulsion] = 5f;
 
         // we define rules here
+        Rule[] rules =
         {
             new Rule("min", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "positive"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
             new Rule("min", new Characteristic[] {Characteristic.Adventurous }, new string[] { "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
