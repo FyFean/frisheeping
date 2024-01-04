@@ -185,9 +185,14 @@ public class GameManager : MonoBehaviour
     public bool simulationRunning = false;
 
 
+    private string filePath = "sheep_positions.txt";
+    private StreamWriter writer;
 
     void Start()
     {
+        writer = new StreamWriter(filePath);
+        Debug.Log("File will be created at: " + Path.Combine(Application.dataPath, filePath));
+
         if (simulationName == "")
         {
             simulationName = string.Format("{0}_{1}", System.DateTime.Now.ToString("s"), DogBehaviour);
@@ -284,6 +289,10 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+
+        string positionsLine = string.Join(", ", sheepList.Select(sc => $"{sc.transform.position.x},{sc.transform.position.y},{sc.transform.position.z}"));
+        writer.WriteLine(positionsLine);
+
         float timestep;
         if (useFixedTimestep)
         {
@@ -516,6 +525,14 @@ public class GameManager : MonoBehaviour
                     sc.l_i = Mathf.Sqrt(sc.l_i);
                 }
             }
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (writer != null)
+        {
+            writer.Close();
         }
     }
 }
