@@ -354,8 +354,8 @@ public class FuzzyLogic
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "positive", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.SheepRepulsion  }, new string[] { "negative", "negative"}, DecisionModel.DogRepulsion, "negative", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.DogRepulsion }, new string[] { "positive", "negative"}, DecisionModel.Noise, "positive", 1.0f),
-            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "negative", "positive"}, DecisionModel.Noise, "negative", 1.0f)
-            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] { "negative", "neutral"}, DecisionModel.Noise, "positive", 1.0f)
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "negative", "positive"}, DecisionModel.Noise, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] { "negative", "neutral"}, DecisionModel.Noise, "positive", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] {"positive", "negative"}, DecisionModel.Noise, "negative", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] {"negative", "positive"}, DecisionModel.Noise, "neutral", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "negative","positive","neutral","negative", "neutral"}, DecisionModel.Noise, "positive", 1.0f),
