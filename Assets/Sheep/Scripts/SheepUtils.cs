@@ -15,6 +15,49 @@ public static class SheepUtils
         return positions.ToArray();
     }
 
+    public static Enums.SheepState FloatToSpeedEnum(float val)
+    {
+        int roundedValue = Mathf.RoundToInt(val);
+        switch (roundedValue)
+        {
+            case 0:
+                return Enums.SheepState.idle;
+            case 1:
+                return Enums.SheepState.walking;
+            case 2:
+                return Enums.SheepState.running;
+        }
+
+        return Enums.SheepState.idle;
+
+    }
+
+    public static float SpeedEnumtoFloat(Enums.SheepState val) {
+        switch (val)
+        {
+            case Enums.SheepState.idle:
+                return 0.0f;
+            case Enums.SheepState.walking:
+                return 1.0f;
+            case Enums.SheepState.running:
+                return 2.0f;
+        }
+        return -1.0f;
+    }
+
+    public static float[] GetSheepSpeeds(float val, IEnumerable<SheepController> sheepNeighbours)
+    {
+        List<float> positions = new List<float>();
+
+        foreach (var sheep in sheepNeighbours)
+        {
+            float v = SheepUtils.SpeedEnumtoFloat(sheep.sheepState);
+            positions.Add(v);
+        }
+
+        return positions.ToArray();
+    }
+
     public static Vector3[] GetDogPositions(IEnumerable<DogController> dogNeighbors)
     {
         List<Vector3> positions = new List<Vector3>();
@@ -42,5 +85,25 @@ public static class SheepUtils
         }
 
         return distances;
+    }
+
+    public static float[] CalculateAngles(Transform currentPosition, IEnumerable<SheepController> neighborTransforms)
+    {
+        Vector3 currentDirection = currentPosition.forward;
+        List<float> angles = new List<float>();
+
+        foreach (var sheep in neighborTransforms)
+        {
+            Transform neighborTransform = sheep.transform;
+            //Vector3 neighborDirection = (neighborTransform.position - currentPosition.position).normalized;
+            float angle = Vector3.Angle(currentDirection, neighborTransform.forward);
+            Vector3 crossProduct = Vector3.Cross(currentDirection, neighborTransform.forward);
+            float sign = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
+
+            float signedAngle = angle * sign;
+            angles.Add(signedAngle);
+        }
+
+        return angles.ToArray();
     }
 }

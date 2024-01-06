@@ -625,28 +625,20 @@ public class SheepController : MonoBehaviour
         Vector3[] DogPos = SheepUtils.GetDogPositions(dogs);
         float[] sheepDist = SheepUtils.CalculateDistances(this.position, SheepPos);
         float[] dogDist = SheepUtils.CalculateDistances(this.position, DogPos);
+        float[] sheepAng = SheepUtils.CalculateAngles(this.transform, sheepNeighbours);
+        float curr_speed = SheepUtils.SpeedEnumtoFloat(this.sheepState);
+        float[] sheepSpeeds = SheepUtils.GetSheepSpeeds(curr_speed, sheepNeighbours);
 
-        float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist);
-         Debug.Log("sheepssssssss (" + fuzzy_values.Length + "): " + string.Join(", ", fuzzy_values));
+        float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist, sheepAng, sheepSpeeds);
+
+        if (this.id == 1) {
+            Debug.Log("testt (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
+            Debug.Log("test2 (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepSpeeds));
+        }
 
 
         // ker je na range 0 do 1, damo *2, da je utez med 0 in 2
-        float val = fuzzy_values[0];
-        int roundedValue = Mathf.RoundToInt(val);
-
-        // Use a switch statement based on the rounded integer value
-        switch (roundedValue)
-        {
-            case 0:
-                this.sheepState = Enums.SheepState.idle;
-                break;
-            case 1:
-                this.sheepState = Enums.SheepState.walking;
-                break;
-            case 2:
-                this.sheepState = Enums.SheepState.running;
-                break;
-        }
+        this.sheepState = SheepUtils.FloatToSpeedEnum(fuzzy_values[0]);
 
         this.desiredTheta = fuzzy_values[1];
 
