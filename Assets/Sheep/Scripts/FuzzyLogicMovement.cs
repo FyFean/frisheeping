@@ -152,6 +152,15 @@ public class RuleMovement
                         }
 
                         return sampled;
+                    case "neutral":
+                        for (int i = 0; i < this.N_SAMPLES; i++)
+                        {
+                            //xValues[i] = minValue + i * interval;
+                            float v = Mathf.Min(value, TriangularMembership(value, 0, 90, 180));
+                            sampled[i] = v * (interval * i);
+
+                        }
+                        return sampled;
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -176,6 +185,16 @@ public class RuleMovement
                         }
 
                         return sampled;
+                    case "neutral":
+                        for (int i = 0; i < this.N_SAMPLES; i++)
+                        {
+                            //xValues[i] = minValue + i * interval;
+                            float v = Mathf.Min(value,TriangularMembership(value, 0, 1, 1));
+                            sampled[i] = v * (interval * i);
+
+                        }
+                        return sampled;
+
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }

@@ -627,6 +627,9 @@ public class SheepController : MonoBehaviour
         float[] dogDist = SheepUtils.CalculateDistances(this.position, DogPos);
 
         float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist);
+         Debug.Log("sheepssssssss (" + fuzzy_values.Length + "): " + string.Join(", ", fuzzy_values));
+
+
         // ker je na range 0 do 1, damo *2, da je utez med 0 in 2
         float val = fuzzy_values[0];
         int roundedValue = Mathf.RoundToInt(val);
