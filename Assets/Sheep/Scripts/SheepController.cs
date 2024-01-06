@@ -73,7 +73,7 @@ public class SheepController : MonoBehaviour
     //  [HideInInspector]
     public int id;
 
-    // state
+    // State of the sheep - speed enum
     [HideInInspector]
     public Enums.SheepState sheepState;
     public Enums.SheepState previousSheepState;
@@ -131,7 +131,7 @@ public class SheepController : MonoBehaviour
         // GameManager
         GM = FindObjectOfType<GameManager>();
 
-        this.fuzzyLogic = new FuzzyLogic();
+        this.fuzzyLogic = new FuzzyLogic(this.id);
 
         // random state
         sheepState = (Enums.SheepState)Random.Range(0, 3);
@@ -607,32 +607,40 @@ public class SheepController : MonoBehaviour
         var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id);
         if (GM.SheepParametersStrombom.occlusion)
             sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle));
+
+        Vector3[] SheepPos = SheepUtils.GetSheepPositions(sheepNeighbours);
+
+        //foreach (SheepController neighbour in sc.metricNeighbours)
+        //{
+        //    if (neighbour.dead) continue;
+        //    // state counter
+        //    switch (neighbour.sheepState)
+        //    {
+        //        case Enums.SheepState.idle:
+        //            sc.n_idle++;
+        //            break;
+        //        case Enums.SheepState.walking:
+        //            sc.n_walking++;
+        //            break;
+        //    }
+        //}
+
         //float[] fuzzy_values = fuzzyLogic.fuzzyfy();
         //for (int i = 0; i < fuzzy_values.Length; i++)
         //{
         //    Debug.Log($"fuzzy_values[{i}] = {fuzzy_values[i]}");
         //}
-        float[] fuzzy_values = { 10.0f, 2.0f };
+        
+        //this.desiredTheta;
+        //this.desiredV;
+        //this.position
     }
 
     void StrombomUpdate()
     {
 
-        // TODO: ko dobimo defuzz. vrednosti, je potrebno ustrezno posodobiti model
-        float[] fuzzy_values = fuzzyLogic.fuzzyfy();
-        // ker je na range 0 do 1, damo *2, da je utez med 0 in 2
-        float fuzzyNoise = fuzzy_values[0]*2;
-        float fuzzyDogRepulsion = fuzzy_values[1]*2;
-        float fuzzySheepRepulsion = fuzzy_values[2]*2;
 
-        //for (int i = 0; i < fuzzy_values.Length; i++)
-        //{
-        //    Debug.Log("Fuzzy elements: " + string.Join(", ", fuzzy_values));
-        //}
-
-        
         Vector3 desiredThetaVector = new Vector3();
-
         var dogs = GM.dogList.Where(dog => (dog.transform.position - transform.position).sqrMagnitude < GM.SheepParametersStrombom.r_s * GM.SheepParametersStrombom.r_s);
         if (GM.SheepParametersStrombom.occlusion)
             dogs = dogs.Where(dog => IsVisible(dog, GM.SheepParametersStrombom.blindAngle));
@@ -650,6 +658,18 @@ public class SheepController : MonoBehaviour
                 .OrderBy(d => d, new ByDistanceFrom(this))
                 .Take(GM.SheepParametersStrombom.n);
 #endif
+        Vector3[] SheepPos = SheepUtils.GetSheepPositions(sheepNeighbours);
+        Vector3[] DogPos = SheepUtils.GetDogPositions(dogs);
+        float[] sheepDist = SheepUtils.CalculateDistances(this.position, SheepPos);
+        float[] dogDist = SheepUtils.CalculateDistances(this.position, DogPos);
+
+        float[] fuzzy_values = fuzzyLogic.fuzzyfy(sheepDist, dogDist);
+        // ker je na range 0 do 1, damo *2, da je utez med 0 in 2
+        float fuzzyNoise = fuzzy_values[0] * 5f - 2.5f;
+        float fuzzyDogRepulsion = fuzzy_values[1] * 3f - 1.5f;
+        float fuzzySheepRepulsion = fuzzy_values[2] * 5f - 2.5f;
+        
+        
         if (dogs.Count() == 0)
         {
             if (Random.Range(.0f, 1.0f) < .05f)
@@ -671,7 +691,7 @@ public class SheepController : MonoBehaviour
             // repulsion directly from shepherds
             Vector3 Rs = new Vector3();
             foreach (DogController dc in dogs)
-                Rs += fuzzyDogRepulsion*(transform.position - dc.transform.position);
+                Rs += (transform.position - dc.transform.position);
 
             Vector3 Ra = new Vector3();
             Vector3 LCM = new Vector3();
@@ -679,7 +699,7 @@ public class SheepController : MonoBehaviour
             {
                 // repulsion from interacting neighbours
                 if ((transform.position - sc.transform.position).magnitude < GM.SheepParametersStrombom.r_a)
-                    Ra += fuzzySheepRepulsion*(transform.position - sc.transform.position).normalized;
+                    Ra += (transform.position - sc.transform.position).normalized;
                 LCM += sc.transform.position;
             }
             LCM += transform.position;
@@ -690,11 +710,16 @@ public class SheepController : MonoBehaviour
             Ci += LCM - transform.position;
 
             // noise
-            float eps = fuzzyNoise * Random.Range(-Mathf.PI * GM.SheepParametersStrombom.e, Mathf.PI * GM.SheepParametersStrombom.e);
+            float eps = Random.Range(-Mathf.PI * GM.SheepParametersStrombom.e, Mathf.PI * GM.SheepParametersStrombom.e);
             desiredThetaVector += GM.SheepParametersStrombom.h * transform.forward +
               GM.SheepParametersStrombom.c * Ci.normalized +
               GM.SheepParametersStrombom.rho_a * Ra.normalized +
               GM.SheepParametersStrombom.rho_s * Rs.normalized;
+
+            Vector3 desiredThetaVector2 = GM.SheepParametersStrombom.h * transform.forward +
+              GM.SheepParametersStrombom.c * Ci.normalized +
+              GM.SheepParametersStrombom.rho_a * (fuzzySheepRepulsion * Ra).normalized +
+              GM.SheepParametersStrombom.rho_s * (fuzzyDogRepulsion * Rs).normalized;
 
             // repulsion from fences and trees
             float r_f2 = GM.SheepParametersStrombom.r_f * GM.SheepParametersStrombom.r_f;
@@ -708,7 +733,7 @@ public class SheepController : MonoBehaviour
 
                     float f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersStrombom.r_f) / GM.SheepParametersStrombom.r_f);
                     desiredThetaVector += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
-
+                    desiredThetaVector2 += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
                     // if walking transition to idle mode the closer to the fence the more likely
                     if (sheepState == Enums.SheepState.walking)
                         if (Random.Range(.0f, 1.0f) < 1f - (d_ij / GM.SheepParametersStrombom.r_f))
@@ -718,7 +743,15 @@ public class SheepController : MonoBehaviour
 
             // extract desired heading
             desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
+            float desiredTheta2 = (Mathf.Atan2(desiredThetaVector2.z, desiredThetaVector2.x) + fuzzyNoise * eps) * Mathf.Rad2Deg;
+            //if (this.id == 1)
+            //{
+            //    Debug.Log("Fuzzy vals: " + fuzzyDogRepulsion + ", " + fuzzySheepRepulsion + ", " + fuzzyNoise);
+            //    Debug.Log("Fuzzy comp: " + Rs + " " + fuzzyDogRepulsion * Rs + " " + Ra + ", " + fuzzySheepRepulsion * Ra + ", " + eps + " " + fuzzyNoise * eps);
+            //    Debug.Log("Fuzzy theta: " + desiredThetaVector + " " + desiredThetaVector2 + ", " + desiredTheta + " " + desiredTheta2);
+            //}
         }
+
         SetSpeed();
     }
 }

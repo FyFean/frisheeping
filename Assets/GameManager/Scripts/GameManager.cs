@@ -190,6 +190,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Random.InitState(42);
         writer = new StreamWriter(filePath);
         Debug.Log("File will be created at: " + Path.Combine(Application.dataPath, filePath));
 

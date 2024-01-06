@@ -1,424 +1,502 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using Random = UnityEngine.Random;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using UnityEngine;
+//using Random = UnityEngine.Random;
 
 
-public static class GlobalsMovement
-{
-    public static int N_SAMPLES = 10;
-}
+//public static class Globals
+//{
+//    public static int N_SAMPLES = 10;
+//}
 
-public enum CharacteristicM
-{
-    Extraversion,
-    Adventurous,
-    Agreeableness,
-    Noise,
-    DogRepulsion,
-    SheepRepulsion
-}
+//public enum Characteristic
+//{
+//    Extraversion,
+//    Adventurous,
+//    Agreeableness,
+//    Speed,
+//    Angle
+//}
 
-public enum CharacteristicArrayM
-{
-    NearbySheep,
-    Direction,
-}
+//public enum DecisionModel
+//{
+//    Speed,
+//    Angle
+//}
 
-public enum DecisionModelM
-{
-    Noise,
-    DogRepulsion,
-    SheepRepulsion
-}
+//public class Rule
+//{
+//    public Characteristic[] input_characteristic;
+//    public string[] input_values;
+//    public DecisionModel output_decisions;
+//    public string output_values;
+//    public string type;
+//    public float weight;
+//    public int N_SAMPLES;
 
-public class RuleMovement
-{
-    public CharacteristicM[] input_characteristic;
-    public CharacteristicM[] array_characteristic;
-    public string[] input_values;
-    public DecisionModelM output_decisions;
-    public string output_values;
-    public string type;
-    public float weight;
-    public int N_SAMPLES;
+//    public Rule(string type, Characteristic[] characteristic, string[] input_values, DecisionModel dm, string output_values, float weight)
+//    {
+//        this.N_SAMPLES = Globals.N_SAMPLES;
+//        this.type = type;
+//        this.input_characteristic = characteristic;
+//        this.input_values = input_values;
+//        this.output_decisions = dm;
+//        this.output_values = output_values;
+//        this.weight = weight;
+//    }
 
-    public RuleMovement(string type, CharacteristicM[] characteristic, string[] input_values, DecisionModelM dm, string output_values, float weight)
-    {
-        this.N_SAMPLES = GlobalsMovement.N_SAMPLES;
-        this.type = type;
-        this.input_characteristic = characteristic;
-        this.input_values = input_values;
-        this.output_decisions = dm;
-        this.output_values = output_values;
-        this.weight = weight;
-    }
+//    public float[] evaluateRule(Dictionary<Characteristic, float> Input)
+//    {
+//        int in_len = input_values.Length;
+//        float[] fuzzified_val = new float[in_len];
+//        // 1. fuzzify inputs
+//        for (int i = 0; i < in_len; i++)
+//        {
+//            Characteristic charr = input_characteristic[i];
+//            string single_val = input_values[i];
+//            float input_val = Input[charr];
+//            fuzzified_val[i] = fuzzifyValue(charr, input_val, single_val);
+//        }
 
-    public float[] evaluateRule(Dictionary<CharacteristicM, float> Input)
-    {
-        int in_len = input_values.Length;
-        float[] fuzzified_val = new float[in_len];
+//        float fuzzyFinal = -1f;
+//        // 2a. fuzzy operation
+//        switch (this.type)
+//        {
+//            case "":
+//                fuzzyFinal = fuzzified_val[0];
+//                break;
+//            case "min":
+//                fuzzyFinal = fuzzified_val.Min();
+//                break;
+//            case "max":
+//                fuzzyFinal = fuzzified_val.Max();
+//                break;
+//        }
+//        // 2b. sample output distribution from 2a value
+//        float[] sampled = SampleFunction(output_decisions, fuzzyFinal, output_values);
 
-        for (int i = 0; i < in_len; i++)
-        {
-            CharacteristicM charr = input_characteristic[i];
-            string single_val = input_values[i];
-            float input_val = Input[charr];
-            fuzzified_val[i] = fuzzifyValue(charr, input_val, single_val);
-        }
+//        return sampled;
+//    }
 
-        float fuzzyFinal = -1f;
+//    public float fuzzifyValue(Characteristic characteristic, float value, string single_val)
+//    {
+//        switch (characteristic)
+//        {
+//            case Characteristic.Adventurous:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TriangularMembership(value, 0, 30, 60);
+//                    case "negative":
+//                        return TriangularMembership(value, 40, 70, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case Characteristic.Agreeableness:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TriangularMembership(value, 0, 40, 80);
+//                    case "negative":
+//                        return TriangularMembership(value, 20, 80, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case Characteristic.Extraversion:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TrapezoidalMembership(value, 0, 20, 40, 60);
+//                    case "negative":
+//                        return TrapezoidalMembership(value, 40, 60, 80, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case Characteristic.DogRepulsion:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TrapezoidalMembership(value, 0, 20, 40, 60);
+//                    case "negative":
+//                        return TrapezoidalMembership(value, 40, 60, 80, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case Characteristic.SheepRepulsion:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TrapezoidalMembership(value, 0, 20, 40, 60);
+//                    case "negative":
+//                        return TrapezoidalMembership(value, 40, 60, 80, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case Characteristic.Noise:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        return TrapezoidalMembership(value, 0, 20, 40, 60);
+//                    case "negative":
+//                        return TrapezoidalMembership(value, 40, 60, 80, 100);
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            default:
+//                throw new ArgumentException($"Unsupported characteristic: {characteristic}");
+//        }
+//    }
 
-        switch (this.type)
-        {
-            case "":
-                fuzzyFinal = fuzzified_val[0];
-                break;
-            case "min":
-                fuzzyFinal = fuzzified_val.Min();
-                break;
-            case "max":
-                fuzzyFinal = fuzzified_val.Max();
-                break;
-        }
+//    float[] SampleFunction(DecisionModel characteristic, float value, string single_val)
+//    {
 
-        float[] sampled = SampleFunction(output_decisions, fuzzyFinal, output_values);
-        return sampled;
-    }
+//        float minValue = 0f;
+//        float maxValue = 100f;
+//        float interval = (maxValue - minValue) / (this.N_SAMPLES - 1);
+//        float[] sampled = new float[this.N_SAMPLES];
 
-    public float fuzzifyValue(CharacteristicM characteristic, float value, string single_val)
-    {
-        switch (characteristic)
-        {
-            case CharacteristicM.Adventurous:
-                switch (single_val)
-                {
-                    case "positive":
-                        return TriangularMembership(value, 0, 30, 60);
-                    case "negative":
-                        return TriangularMembership(value, 40, 70, 100);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case CharacteristicM.Agreeableness:
-                switch (single_val)
-                {
-                    case "positive":
-                        return SigmoidalMembership(value, 10, 10);
-                    case "negative":
-                        return SigmoidalMembership(value, 10, 10);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case CharacteristicM.Extraversion:
-                switch (single_val)
-                {
-                    case "positive":
-                        return TriangularMembership(value, 0, 20, 40);
-                    case "negative":
-                        return TriangularMembership(value, 10, 60, 100);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case CharacteristicM.DogRepulsion:
-                switch (single_val)
-                {
-                    case "positive":
-                        return TrapezoidalMembership(value, 0, 20, 40, 60);
-                    case "negative":
-                        return TrapezoidalMembership(value, 40, 60, 80, 100);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case CharacteristicM.SheepRepulsion:
-                switch (single_val)
-                {
-                    case "positive":
-                        return TrapezoidalMembership(value, 0, 20, 40, 60);
-                    case "negative":
-                        return TrapezoidalMembership(value, 40, 60, 80, 100);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case CharacteristicM.Noise:
-                switch (single_val)
-                {
-                    case "positive":
-                        return TrapezoidalMembership(value, 0, 20, 40, 60);
-                    case "negative":
-                        return TrapezoidalMembership(value, 40, 60, 80, 100);
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            default:
-                throw new ArgumentException($"Unsupported characteristic: {characteristic}");
-        }
-    }
+//        switch (characteristic)
+//        {
+//            case DecisionModel.DogRepulsion:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
+//                            sampled[i] = v * (interval * i);
 
-    float[] SampleFunction(DecisionModelM characteristic, float value, string single_val)
-    {
+//                        }
 
-        float minValue = 0f;
-        float maxValue = 1f;
-        float interval = (maxValue - minValue) / (-1);
-        float[] sampled = new float[this.N_SAMPLES];
+//                        return sampled;
+//                    case "negative":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 20, 60, 90, 100));
+//                            sampled[i] = v * (interval * i);
 
-        switch (characteristic)
-        {
-            case DecisionModelM.DogRepulsion:
-                switch (single_val)
-                {
-                    case "positive":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
-                            sampled[i] = v;
-                        }
+//                        }
 
-                        return sampled;
-                    case "negative":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
-                            sampled[i] = v;
-                        }
+//                        return sampled;
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case DecisionModel.Noise:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 10, 60, 70));
+//                            sampled[i] = v * (interval * i);
 
-                        return sampled;
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case DecisionModelM.Noise:
-                switch (single_val)
-                {
-                    case "positive":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 10, 60, 70));
-                            sampled[i] = v;
-                        }
+//                        }
 
-                        return sampled;
-                    case "negative":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 50, 90, 100));
-                            sampled[i] = v;
-                        }
+//                        return sampled;
+//                    case "negative":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 50, 90, 100));
+//                            sampled[i] = v * (interval * i);
+//                        }
 
-                        return sampled;
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            case DecisionModelM.SheepRepulsion:
-                switch (single_val)
-                {
-                    case "positive":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
-                            sampled[i] = v;
-                        }
+//                        return sampled;
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            case DecisionModel.SheepRepulsion:
+//                switch (single_val)
+//                {
+//                    case "positive":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
+//                            sampled[i] = v * (interval * i);
+//                        }
 
-                        return sampled;
-                    case "negative":
-                        for (int i = 0; i < this.N_SAMPLES; i++)
-                        {
-                            //xValues[i] = minValue + i * interval;
-                            float v = Mathf.Min(value, TrapezoidalMembership(i, 0, 20, 40, 60));
-                            sampled[i] = v;
-                        }
+//                        return sampled;
+//                    case "negative":
+//                        for (int i = 0; i < this.N_SAMPLES; i++)
+//                        {
+//                            //xValues[i] = minValue + i * interval;
+//                            float v = Mathf.Min(value, TrapezoidalMembership(i, 20, 60, 90, 100));
+//                            sampled[i] = v * (interval * i);
+//                        }
 
-                        return sampled;
-                    default:
-                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
-                }
-            default:
-                throw new ArgumentException($"Unsupported characteristic: {characteristic}");
-                //    xValues[i] = minValue + i * interval;
-        }
-    }
+//                        return sampled;
+//                    default:
+//                        throw new ArgumentException($"Unsupported characteristic: {single_val}");
+//                }
+//            default:
+//                throw new ArgumentException($"Unsupported characteristic: {characteristic}");
+//                //    xValues[i] = minValue + i * interval;
+//        }
+//    }
 
-    float TriangularMembership(float x, float a, float b, float c)
-    {
-        if (x <= a || x > c) return 0.0f;
-        if (a < x && x <= b) return (x - a) / (b - a);
-        if (b < x && x <= c) return (c - x) / (c - b);
-        return 0.0f;
-    }
+//    float TriangularMembership(float x, float a, float b, float c)
+//    {
+//        if (x <= a || x > c) return 0.0f;
+//        if (a < x && x <= b) return (x - a) / (b - a);
+//        if (b < x && x <= c) return (c - x) / (c - b);
+//        return 0.0f;
+//    }
 
-    float TrapezoidalMembership(float x, float a, float b, float c, float d)
-    {
-        if (x <= a || x > d) return 0.0f;
-        if (a < x && x <= b) return (x - a) / (b - a);
-        if (b < x && x <= c) return 1.0f;
-        if (c < x && x <= d) return (d - x) / (d - c);
-        return 0.0f;
-    }
+//    float TrapezoidalMembership(float x, float a, float b, float c, float d)
+//    {
+//        if (x <= a || x > d) return 0.0f;
+//        if (a < x && x <= b) return (x - a) / (b - a);
+//        if (b < x && x <= c) return 1.0f;
+//        if (c < x && x <= d) return (d - x) / (d - c);
+//        return 0.0f;
+//    }
 
-    float GaussianMembership(float x, float c, float sigma)
-    {
-        return Mathf.Exp(-0.5f * Mathf.Pow((x - c) / sigma, 2));
-    }
+//    float GaussianMembership(float x, float c, float sigma)
+//    {
+//        return Mathf.Exp(-0.5f * Mathf.Pow((x - c) / sigma, 2));
+//    }
 
-    float SigmoidalMembership(float x, float c, float alpha)
-    {
-        return 1.0f / (1.0f + Mathf.Exp(-alpha * (x - c)));
-    }
-}
+//    float SigmoidalMembership(float x, float c, float alpha)
+//    {
+//        return 1.0f / (1.0f + Mathf.Exp(-alpha * (x - c)));
+//    }
+//}
 
-public class FuzzyLogicMovement
-{
-    private Dictionary<CharacteristicM, float> FuzzyInput;
-    private RuleMovement[] rules;
-    private int N_SAMPLES;
+////https://www.mathworks.com/help/fuzzy/fuzzy-inference-process.html
+////https://www.mathworks.com/help/fuzzy/mamdani_tipping_new.png
+//public class FuzzyLogic
+//{
+//    private Dictionary<Characteristic, float> FuzzyInput;
+//    private Rule[] rules;
+//    private int N_SAMPLES;
+//    private int sheep_id;
 
-    public FuzzyLogicMovement()
-    {
-        N_SAMPLES = GlobalsMovement.N_SAMPLES;
-        this.FuzzyInput = new Dictionary<CharacteristicM, float>();
-        foreach (CharacteristicM characteristic in Enum.GetValues(typeof(CharacteristicM)))
-        {
-            float randomValue = (float)Random.Range(0, 101);
-            this.FuzzyInput.Add(characteristic, randomValue);
-        }
-        this.FuzzyInput[CharacteristicM.DogRepulsion] = 5f;
-        this.FuzzyInput[CharacteristicM.Noise] = 5f;
-        this.FuzzyInput[CharacteristicM.SheepRepulsion] = 5f;
+//    public FuzzyLogic(int sheep_id)
+//    {
+//        this.sheep_id = sheep_id;
+//        N_SAMPLES = Globals.N_SAMPLES;
+//        this.FuzzyInput = new Dictionary<Characteristic, float>();
+//        // initial crisp value of characteristic (0 to 100) - value before fuzzification
+//        foreach (Characteristic characteristic in Enum.GetValues(typeof(Characteristic)))
+//        {
+//            float randomValue = (float)Random.Range(0, 101);
+//            this.FuzzyInput.Add(characteristic, randomValue);
+//        }
+//        // initial decision parameters
+//        this.FuzzyInput[Characteristic.DogRepulsion] = 50f;
+//        this.FuzzyInput[Characteristic.Noise] = 50f;
+//        this.FuzzyInput[Characteristic.SheepRepulsion] = 50f;
 
+//        // we define rules here
+//        this.rules = new Rule[]
+//        {
+//            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "positive"}, DecisionModel.SheepRepulsion, "positive", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "positive"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "negative"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "positive", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.SheepRepulsion  }, new string[] { "negative", "negative"}, DecisionModel.DogRepulsion, "negative", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.DogRepulsion }, new string[] { "positive", "negative"}, DecisionModel.Noise, "positive", 1.0f),
+//            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "negative", "positive"}, DecisionModel.Noise, "negative", 1.0f)
+//        };
+//    }
 
-        // TODO: NOAH PRAVILA
-        //if extraversion + and agreeableness + then n neighbors high
-        //if adventurous + and agreeableness - then n neighbors low
-        //if adventurous + then noise high
-        //if adventurous + then dog repulsion low
-        this.rules = new RuleMovement[]
-        {
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.Adventurous, CharacteristicM.Agreeableness}, new string[] {"positive", "positive"}, DecisionModelM.SheepRepulsion, "negative", 1.0f),
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.Adventurous }, new string[] { "positive"}, DecisionModelM.DogRepulsion, "positive", 1.0f),
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.SheepRepulsion, CharacteristicM.Agreeableness }, new string[] { "positive", "negative"}, DecisionModelM.SheepRepulsion, "negative", 1.0f),
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.Adventurous }, new string[] { "negative"}, DecisionModelM.DogRepulsion, "negative", 1.0f),
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.Adventurous }, new string[] { "negative"}, DecisionModelM.Noise, "negative", 1.0f),
-            new RuleMovement("min", new CharacteristicM[] {CharacteristicM.Adventurous }, new string[] { "positive"}, DecisionModelM.Noise, "positive", 1.0f)
-        };
-    }
+//    float CalculateAverage(float[] array)
+//    {
+//        if (array == null || array.Length == 0)
+//        {
+//            return 0.0f;
+//        }
+
+//        float sum = 0.0f;
+
+//        foreach (float number in array)
+//        {
+//            sum += number;
+//        }
+
+//        return sum / array.Length;
+//    }
+
+//    public void AddCharacteristicVal(
+//        Dictionary<Characteristic, float> CurrI,
+//        Characteristic c,
+//        float degree
+//        )
+//    {
+//        float val = this.FuzzyInput[c];
+//        val += degree;
+//        // constrain value between 0 and 100
+//        float contrained_val = Math.Max(0.0f, Math.Min(100.0f, val));
+//        CurrI.Add(c, contrained_val);
+//    }
+
+//    float MapValueToRange(float originalValue, float originalMin, float originalMax, float newMin, float newMax)
+//    {
+//        // Check if the original value is above the maximum allowed
+//        if (originalValue > originalMax)
+//        {
+//            return newMax;
+//        }
+
+//        // Linear mapping formula
+//        float mappedValue = ((originalValue - originalMin) / (originalMax - originalMin)) * (newMax - newMin) + newMin;
+//        return mappedValue;
+//    }
+//    public float[] fuzzyfy(float[] SheepPos, float[] DogPos)
+//    {
+//        //if (this.sheep_id == 1)
+//        //{
+//        //    Debug.Log("sheepssssssss (" + SheepPos.Length + "): " + string.Join(", ", SheepPos));
+//        //    Debug.Log("sheepssssssss (" + DogPos.Length + "): " + string.Join(", ", DogPos));
+
+//        //}
+
+//        // change model by current state of the env.
+//        float avg_dog_dist = this.CalculateAverage(DogPos);
+//        float avg_sheep_dist = this.CalculateAverage(SheepPos);
+//        float basic_range1 = this.MapValueToRange(avg_dog_dist, 0.0f, 5.0f, -10.0f, 10.0f);
+//        float big_range1 = this.MapValueToRange(avg_dog_dist, 0.0f, 10.0f, -50.0f, 50.0f);
+//        float basic_range2 = this.MapValueToRange(avg_sheep_dist, 0.0f, 5.0f, -10.0f, 10.0f);
+//        float big_range2 = this.MapValueToRange(avg_sheep_dist, 0.0f, 10.0f, -50.0f, 50.0f);
+//        //Debug.Log("Razdalce Razdalce " + avg_dog_dist + " " + avg_sheep_dist);
+//        //Debug.Log("Razdalce Izpeljave1 " + basic_range1 + " " + big_range1);
+//        //Debug.Log("Razdalce Izpeljave2 " + basic_range2 + " " + big_range2);
+//        Dictionary<Characteristic, float> CurrentInputs = new Dictionary<Characteristic, float>();
+//        AddCharacteristicVal(CurrentInputs, Characteristic.Extraversion, basic_range2);
+//        AddCharacteristicVal(CurrentInputs, Characteristic.Adventurous, basic_range1);
+//        AddCharacteristicVal(CurrentInputs, Characteristic.Agreeableness, big_range1);
+//        AddCharacteristicVal(CurrentInputs, Characteristic.Noise, basic_range1);
+//        AddCharacteristicVal(CurrentInputs, Characteristic.DogRepulsion, big_range2);
+//        AddCharacteristicVal(CurrentInputs, Characteristic.SheepRepulsion, big_range2);
+
+//        // init all
+
+//        DecisionModel[] allValues = (DecisionModel[])Enum.GetValues(typeof(DecisionModel));
+//        Dictionary<DecisionModel, Dictionary<string, float[]>> outputDict = new Dictionary<DecisionModel, Dictionary<string, float[]>>();
+//        Dictionary<DecisionModel, Dictionary<string, float>> countDict = new Dictionary<DecisionModel, Dictionary<string, float>>();
+//        Dictionary<DecisionModel, float[]> finalDict = new Dictionary<DecisionModel, float[]>();
 
 
-    public float[] fuzzyfy()
-    {
-        DecisionModelM[] allValues = (DecisionModelM[])Enum.GetValues(typeof(DecisionModelM));
-        Dictionary<DecisionModelM, Dictionary<string, float[]>> outputDict = new Dictionary<DecisionModelM, Dictionary<string, float[]>>();
-        Dictionary<DecisionModelM, Dictionary<string, float>> countDict = new Dictionary<DecisionModelM, Dictionary<string, float>>();
-        Dictionary<DecisionModelM, float[]> finalDict = new Dictionary<DecisionModelM, float[]>();
+//        foreach (DecisionModel value in allValues)
+//        {
+//            Dictionary<string, float[]> innerDict = new Dictionary<string, float[]>
+//            {
+//                { "positive", new float[this.N_SAMPLES]},
+//                { "negative", new float[this.N_SAMPLES]}
+//            };
+//            Dictionary<string, float> innerCountDict = new Dictionary<string, float>
+//            {
+//                { "positive", 0f},
+//                { "negative", 0f}
+//            };
+//            outputDict.Add(value, innerDict);
+//            countDict.Add(value, innerCountDict);
+//        }
 
+//        //1. and 2. and 3. (https://www.mathworks.com/help/fuzzy/mamdani_tipping_new.png)
+//        for (int i = 0; i < this.rules.Length; i++)
+//        {
+//            Rule curr_rule = this.rules[i];
+//            float[] f_val = curr_rule.evaluateRule(CurrentInputs);
+//            for (int j = 0; j < f_val.Length; j++)
+//            {
+//                outputDict[curr_rule.output_decisions][curr_rule.output_values][j] += f_val[j];
+//            }
+//            countDict[curr_rule.output_decisions][curr_rule.output_values] += 1.0f;
+//        }
 
-        foreach (DecisionModelM value in allValues)
-        {
-            Dictionary<string, float[]> innerDict = new Dictionary<string, float[]>
-            {
-                { "positive", new float[this.N_SAMPLES]},
-                { "negative", new float[this.N_SAMPLES]}
-            };
-            Dictionary<string, float> innerCountDict = new Dictionary<string, float>
-            {
-                { "positive", 0f},
-                { "negative", 0f}
-            };
-            outputDict.Add(value, innerDict);
-            countDict.Add(value, innerCountDict);
-        }
+//        foreach (DecisionModel decision in outputDict.Keys)
+//        {
+//            Dictionary<string, float[]> innerOutputDict = outputDict[decision];
+//            Dictionary<string, float> innerCountDict = countDict[decision];
 
-        for (int i = 0; i < this.rules.Length; i++)
-        {
-            RuleMovement curr_rule = this.rules[i];
-            float[] f_val = curr_rule.evaluateRule(this.FuzzyInput);
-            for (int j = 0; j < f_val.Length; j++)
-            {
-                outputDict[curr_rule.output_decisions][curr_rule.output_values][j] += f_val[j];
-            }
-            countDict[curr_rule.output_decisions][curr_rule.output_values] += 1.0f;
-        }
+//            // calculate average if we have multiple same output + value (pos/neg/...)
+//            foreach (string outputKey in innerOutputDict.Keys.ToList())
+//            {
+//                if (innerCountDict[outputKey] > 0)
+//                {
+//                    for (int i = 0; i < innerOutputDict[outputKey].Length; i++)
+//                    {
+//                        innerOutputDict[outputKey][i] /= innerCountDict[outputKey];
+//                    }
+//                }
+//            }
 
-        // calculate average
-        foreach (DecisionModelM decision in outputDict.Keys)
-        {
-            Dictionary<string, float[]> innerOutputDict = outputDict[decision];
-            Dictionary<string, float> innerCountDict = countDict[decision];
+//            // 4. (https://www.mathworks.com/help/fuzzy/mamdani_tipping_new.png)
+//            // aggregate by max for values (pos/neg/...) of an output
+//            float[] finalValues = new float[this.N_SAMPLES];
+//            float max_val = 0.0f;
 
-            foreach (string outputKey in innerOutputDict.Keys.ToList())
-            {
-                if (innerCountDict[outputKey] > 0)
-                {
-                    for (int i = 0; i < innerOutputDict[outputKey].Length; i++)
-                    {
-                        innerOutputDict[outputKey][i] /= innerCountDict[outputKey];
-                    }
-                }
-            }
+//            for (int i = 0; i < this.N_SAMPLES; i++)
+//            {
+//                foreach (string outputKey in innerOutputDict.Keys.ToList())
+//                {
+//                    float curr_val = innerOutputDict[outputKey][i];
+//                    if (curr_val > max_val)
+//                    {
+//                        max_val = curr_val;
+//                    }
 
-            float[] finalValues = new float[this.N_SAMPLES];
-            float max_val = 0.0f;
+//                }
+//                finalValues[i] = max_val;
+//            }
+//            if (this.sheep_id == 1)
+//            {
+//                Debug.Log(decision + ": " + string.Join(", ", finalValues));
+//            }
+//            finalDict.Add(decision, finalValues);
+//        }
 
-            for (int i = 0; i < this.N_SAMPLES; i++)
-            {
-                foreach (string outputKey in innerOutputDict.Keys.ToList())
-                {
-                    float curr_val = innerOutputDict[outputKey][i];
-                    if (curr_val > max_val)
-                    {
-                        max_val = curr_val;
-                    }
+//        // 5. Deffuzify via centroids
+//        float[] centroids = DefuzzifyCentroids(finalDict);
+//        this.FuzzyInput[Characteristic.Noise] = centroids[0];
+//        this.FuzzyInput[Characteristic.DogRepulsion] = centroids[1];
+//        this.FuzzyInput[Characteristic.SheepRepulsion] = centroids[2];
+//        if (this.sheep_id == 1)
+//        {
+//            Debug.Log("centroids: " + string.Join(", ", centroids));
+//        }
 
-                }
-                finalValues[i] = max_val;
-            }
-            //Debug.Log(string.Join(", ", finalValues));
-            finalDict.Add(decision, finalValues);
-        }
+//        return centroids;
+//    }
 
-        //TODO: preveri, ce dela ok... verjetno treba se kaj dodati
-        float[] centroids = DefuzzifyCentroids(finalDict);
+//    // Combine fuzzy outputs using the centroid method (defuzzification)
+//    float[] DefuzzifyCentroids(Dictionary<DecisionModel, float[]> fuzzySets)
+//    {
+//        List<float> centroids = new List<float>();
 
-        return centroids;
-    }
+//        foreach (var outerPair in fuzzySets)
+//        {
+//            float centroid = CalculateCentroid(outerPair.Value);
+//            centroids.Add(centroid);
+//        }
 
-    // Combine fuzzy outputs using the centroid method (defuzzification)
-    float[] DefuzzifyCentroids(Dictionary<DecisionModelM, float[]> fuzzySets)
-    {
-        List<float> centroids = new List<float>();
+//        return centroids.ToArray();
+//    }
 
-        foreach (var outerPair in fuzzySets)
-        {
-            float centroid = CalculateCentroid(outerPair.Value);
-            centroids.Add(centroid);
-        }
+//    // Function to calculate centroid for a single fuzzy set
+//    float CalculateCentroid(float[] fuzzySet)
+//    {
+//        float numerator = 0.0f;
+//        float denominator = 0.0f;
 
-        return centroids.ToArray();
-    }
+//        foreach (var val in fuzzySet)
+//        {
+//            numerator += val;
+//            denominator += 1.0f;
+//        }
 
-    // Function to calculate centroid for a single fuzzy set
-    float CalculateCentroid(float[] fuzzySet)
-    {
-        float numerator = 0.0f;
-        float denominator = 0.0f;
+//        // Handle division by zero
+//        if (denominator == 0.0f)
+//        {
+//            return 0.0f;
+//        }
 
-        foreach (var val in fuzzySet)
-        {
-            numerator += val;
-            denominator += 1.0f; // Assuming equal weight for all values
-        }
-
-        // Handle division by zero
-        if (denominator == 0.0f)
-        {
-            return 0.0f;
-        }
-
-        return numerator / denominator;
-    }
-}
+//        return numerator / denominator;
+//    }
+//}
