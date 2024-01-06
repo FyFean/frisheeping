@@ -90,6 +90,8 @@ public class Rule
                 {
                     case "positive":
                         return TriangularMembership(value, 0, 30, 60);
+                    case "neutral":
+                        return TriangularMembership(value, 30, 50, 70);
                     case "negative":
                         return TriangularMembership(value, 40, 70, 100);
                     default:
@@ -100,6 +102,8 @@ public class Rule
                 {
                     case "positive":
                         return TriangularMembership(value, 0, 40, 80);
+                    case "neutral":
+                        return TriangularMembership(value, 20, 60, 80);
                     case "negative":
                         return TriangularMembership(value, 20, 80, 100);
                     default:
@@ -110,6 +114,8 @@ public class Rule
                 {
                     case "positive":
                         return TrapezoidalMembership(value, 0, 20, 40, 60);
+                    case "neutral":
+                        return TrapezoidalMembership(value, 20, 40, 60, 80);
                     case "negative":
                         return TrapezoidalMembership(value, 40, 60, 80, 100);
                     default:
@@ -120,6 +126,8 @@ public class Rule
                 {
                     case "positive":
                         return TrapezoidalMembership(value, 0, 20, 40, 60);
+                    case "neutral":
+                        return TrapezoidalMembership(value, 20, 40, 60, 80);
                     case "negative":
                         return TrapezoidalMembership(value, 40, 60, 80, 100);
                     default:
@@ -130,6 +138,8 @@ public class Rule
                 {
                     case "positive":
                         return TrapezoidalMembership(value, 0, 20, 40, 60);
+                    case "neutral":
+                        return TrapezoidalMembership(value, 20, 40, 60, 80);
                     case "negative":
                         return TrapezoidalMembership(value, 40, 60, 80, 100);
                     default:
@@ -140,6 +150,8 @@ public class Rule
                 {
                     case "positive":
                         return TrapezoidalMembership(value, 0, 20, 40, 60);
+                    case "neutral":
+                        return TrapezoidalMembership(value, 20, 40, 60, 80);
                     case "negative":
                         return TrapezoidalMembership(value, 40, 60, 80, 100);
                     default:
@@ -181,7 +193,15 @@ public class Rule
                             sampled[i] = v * (interval * i);
 
                         }
+                        return sampled;
+                    case "neutral":
+                        for (int i = 0; i < this.N_SAMPLES; i++)
+                        {
+                            //xValues[i] = minValue + i * interval;
+                            float v = Mathf.Min(value, TrapezoidalMembership(i, 20, 40, 60, 80));
+                            sampled[i] = v * (interval * i);
 
+                        }
                         return sampled;
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
@@ -208,6 +228,15 @@ public class Rule
                         }
 
                         return sampled;
+                    case "neutral":
+                        for (int i = 0; i < this.N_SAMPLES; i++)
+                        {
+                            //xValues[i] = minValue + i * interval;
+                            float v = Mathf.Min(value, TrapezoidalMembership(value, 20, 40, 60, 80));
+                            sampled[i] = v * (interval * i);
+
+                        }
+                        return sampled;
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -232,6 +261,16 @@ public class Rule
                         }
 
                         return sampled;
+                    case "neutral":
+                        for (int i = 0; i < this.N_SAMPLES; i++)
+                        {
+                            //xValues[i] = minValue + i * interval;
+                            float v = Mathf.Min(value, TrapezoidalMembership(value, 20, 40, 60, 80));
+                            sampled[i] = v * (interval * i);
+                        }
+
+                        return sampled;
+
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
                 }
@@ -294,16 +333,37 @@ public class FuzzyLogic
         this.FuzzyInput[Characteristic.Noise] = 50f;
         this.FuzzyInput[Characteristic.SheepRepulsion] = 50f;
 
-        // we define rules here
+        // we define rules here adventurous, agreeablenes, extravaganca, dog repulsion, sheep repulsion, noise
         this.rules = new Rule[]
         {
             new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "positive"}, DecisionModel.SheepRepulsion, "positive", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness}, new string[] {"positive", "positive"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "negative"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "negative"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness }, new string[] { "positive", "negative"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] { "positive", "negative"}, DecisionModel.SheepRepulsion, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness, Characteristic.Extraversion}, new string[] {"positive", "negative", "positive"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "neutral","neutral","positive","negative", "positive"}, DecisionModel.SheepRepulsion, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "negative","positive","negative","negative", "negative"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "neutral","positive","neutral","negative", "neutral"}, DecisionModel.SheepRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness, Characteristic.Extraversion}, new string[] {"positive", "negative", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Agreeableness, Characteristic.Extraversion}, new string[] {"neutral", "positive", "neutral"}, DecisionModel.DogRepulsion, "neutral", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.SheepRepulsion, Characteristic.Agreeableness}, new string[] {"negative", "neutral", "positive"}, DecisionModel.DogRepulsion, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.Agreeableness, Characteristic.DogRepulsion}, new string[] {"neutral", "neutral", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Noise, Characteristic.Agreeableness, Characteristic.Adventurous}, new string[] {"positive", "negative", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "positive", "positive"}, DecisionModel.DogRepulsion, "positive", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.SheepRepulsion  }, new string[] { "negative", "negative"}, DecisionModel.DogRepulsion, "negative", 1.0f),
             new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.DogRepulsion }, new string[] { "positive", "negative"}, DecisionModel.Noise, "positive", 1.0f),
-            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "negative", "positive"}, DecisionModel.Noise, "negative", 1.0f)
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous, Characteristic.Noise }, new string[] { "negative", "positive"}, DecisionModel.Noise, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] { "negative", "neutral"}, DecisionModel.Noise, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] {"positive", "negative"}, DecisionModel.Noise, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.SheepRepulsion, Characteristic.DogRepulsion }, new string[] {"negative", "positive"}, DecisionModel.Noise, "neutral", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "negative","positive","neutral","negative", "neutral"}, DecisionModel.Noise, "positive", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "negative","positive","neutral","positive", "neutral"}, DecisionModel.Noise, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "neutral","neutral","neutral","neutral", "neutral"}, DecisionModel.Noise, "neutral", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "positive","negative","neutral","positive", "positive"}, DecisionModel.Noise, "negative", 1.0f),
+            new Rule("max", new Characteristic[] {Characteristic.Adventurous,Characteristic.SheepRepulsion, Characteristic.Extraversion, Characteristic.DogRepulsion, Characteristic.Noise}, new string[] { "neutral","neutral","positive","negative", "positive"}, DecisionModel.Noise, "positive", 1.0f),
+            
         };
     }
 
@@ -389,11 +449,13 @@ public class FuzzyLogic
             Dictionary<string, float[]> innerDict = new Dictionary<string, float[]>
             {
                 { "positive", new float[this.N_SAMPLES]},
+                { "neutral", new float[this.N_SAMPLES]},
                 { "negative", new float[this.N_SAMPLES]}
             };
             Dictionary<string, float> innerCountDict = new Dictionary<string, float>
             {
                 { "positive", 0f},
+                { "neutral", 0f},
                 { "negative", 0f}
             };
             outputDict.Add(value, innerDict);
