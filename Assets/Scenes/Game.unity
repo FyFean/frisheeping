@@ -109247,7 +109247,7 @@ MonoBehaviour:
   fenceColliders: []
   sheepPrefab: {fileID: 1797672417880888, guid: 8b16a8a0b45ab9647b8ad12c3ad37971,
     type: 3}
-  nOfSheep: 10
+  nOfSheep: 100
   sheepCount: 0
   sheepList: []
   sheepMaxSpeedChange: 7.5000005

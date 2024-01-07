@@ -25,7 +25,7 @@ for line in lines:
 
 # Plotting the 2D path for each sheep
 for sheep_id, data in sheep_data.items():
-    plt.plot(data["x"], data["z"], linestyle='-', label=f'Sheep {sheep_id}')
+    plt.plot(data["x"], data["z"], linestyle='-', label=f'Sheep {sheep_id}', color="gray", alpha=0.4)
 
 plt.title('Sheep Movement Over Time')
 plt.xlabel('X Coordinate')

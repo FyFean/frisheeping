@@ -17,30 +17,33 @@ public static class SheepUtils
 
     public static Enums.SheepState FloatToSpeedEnum(float val)
     {
-        int roundedValue = Mathf.RoundToInt(val);
-        switch (roundedValue)
-        {
-            case 0:
-                return Enums.SheepState.idle;
-            case 1:
-                return Enums.SheepState.walking;
-            case 2:
-                return Enums.SheepState.running;
-        }
 
+        if (val <= 1f)
+        {
+            return Enums.SheepState.idle;
+        }
+        else if (val <= 2f)
+        {
+            return Enums.SheepState.walking;
+        }
+        else if (val <= 3f)
+        {
+            return Enums.SheepState.running;
+        }
         return Enums.SheepState.idle;
 
     }
 
-    public static float SpeedEnumtoFloat(Enums.SheepState val) {
+    public static float SpeedEnumtoFloat(Enums.SheepState val)
+    {
         switch (val)
         {
             case Enums.SheepState.idle:
-                return 0.0f;
+                return 0.5f;
             case Enums.SheepState.walking:
-                return 1.0f;
+                return 1.5f;
             case Enums.SheepState.running:
-                return 2.0f;
+                return 2.5f;
         }
         return -1.0f;
     }
@@ -76,9 +79,8 @@ public static class SheepUtils
 
         for (int i = 0; i < pointsArray.Length; i++)
         {
-            // Ignore the height component (z)
-            Vector2 point2D = new Vector2(point.x, point.y);
-            Vector2 arrayPoint2D = new Vector2(pointsArray[i].x, pointsArray[i].y);
+            Vector2 point2D = new Vector2(point.x, point.z);
+            Vector2 arrayPoint2D = new Vector2(pointsArray[i].x, pointsArray[i].z);
 
             // Calculate the distance using Vector2.Distance
             distances[i] = Vector2.Distance(point2D, arrayPoint2D);
@@ -101,7 +103,7 @@ public static class SheepUtils
             float sign = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
 
             float signedAngle = angle * sign;
-            angles.Add(signedAngle);
+            angles.Add(signedAngle + 180);
         }
 
         return angles.ToArray();

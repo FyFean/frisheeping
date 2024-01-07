@@ -283,8 +283,8 @@ public class SheepController : MonoBehaviour
             // drives update
             if (drivesTimer < 0)
             {
-                //StrombomUpdate();
-                FuzzyUpdate();
+                StrombomUpdate();
+                //FuzzyUpdate();
                 drivesTimer = drivesUpdateInterval;
             }
         }
@@ -631,16 +631,49 @@ public class SheepController : MonoBehaviour
 
         float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist, sheepAng, sheepSpeeds);
 
-        if (this.id == 1) {
-            Debug.Log("testt (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
-            Debug.Log("test2 (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepSpeeds));
+        Vector3 Rs = new Vector3();
+        float R_mag = 0f;
+        foreach (DogController dc in dogs)
+        {
+            Rs += (transform.position - dc.transform.position);
+            R_mag += (dc.transform.position - transform.position).magnitude;
         }
 
+        float stateFloat = 0.5f;
 
-        // ker je na range 0 do 1, damo *2, da je utez med 0 in 2
-        this.sheepState = SheepUtils.FloatToSpeedEnum(fuzzy_values[0]);
+        if (R_mag > 0f)
+        {
+            if (R_mag < 12.5f)
+            {
+                stateFloat = 2.5f;
+            }
+            else { 
+            stateFloat = 1.5f;
+            }
 
-        this.desiredTheta = fuzzy_values[1];
+            //stateFloat = 0.8f * stateFloat + 0.2f * fuzzy_values[0];
+        }
+        //else
+        //{
+        //    stateFloat = 1f;
+        //}
+
+        this.sheepState = SheepUtils.FloatToSpeedEnum(stateFloat);
+
+
+        Vector3 dog_rep = GM.SheepParametersStrombom.h * transform.forward + 3f * Rs.normalized;
+        float dogTheta = (Mathf.Atan2(dog_rep.z, dog_rep.x)) * Mathf.Rad2Deg;
+        this.desiredTheta = 0.2f * dogTheta + 0.8f * (fuzzy_values[1] - 180f);
+        //this.desiredTheta = dogTheta;
+        if (this.id == 1)
+        {
+            Debug.Log("testt (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
+            //Debug.Log("test move (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepSpeeds));
+            //Debug.Log("final test (" + string.Join(", ", fuzzy_values) + ")" + this.sheepState + " " + this.desiredTheta);
+            //Debug.Log("final test: " + this.transform.position + " | " + stateFloat + " " + this.sheepState + " " + R_mag + " | " + ", " + dog_rep + " " + Rs + " " + this.desiredTheta);
+            float tt = fuzzy_values[1] - 180f;
+            Debug.Log("final test: " + this.transform.position + " | " + dogTheta+" "+ tt + " " + this.desiredTheta);
+        }
 
         //if (dogs.Count() == 0)
         //{
@@ -716,12 +749,12 @@ public class SheepController : MonoBehaviour
         //    // extract desired heading
         //    desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
         //    float desiredTheta2 = (Mathf.Atan2(desiredThetaVector2.z, desiredThetaVector2.x) + fuzzyNoise * eps) * Mathf.Rad2Deg;
-            //if (this.id == 1)
-            //{
-            //    Debug.Log("Fuzzy vals: " + fuzzyDogRepulsion + ", " + fuzzySheepRepulsion + ", " + fuzzyNoise);
-            //    Debug.Log("Fuzzy comp: " + Rs + " " + fuzzyDogRepulsion * Rs + " " + Ra + ", " + fuzzySheepRepulsion * Ra + ", " + eps + " " + fuzzyNoise * eps);
-            //    Debug.Log("Fuzzy theta: " + desiredThetaVector + " " + desiredThetaVector2 + ", " + desiredTheta + " " + desiredTheta2);
-            //}
+        //if (this.id == 1)
+        //{
+        //    Debug.Log("Fuzzy vals: " + fuzzyDogRepulsion + ", " + fuzzySheepRepulsion + ", " + fuzzyNoise);
+        //    Debug.Log("Fuzzy comp: " + Rs + " " + fuzzyDogRepulsion * Rs + " " + Ra + ", " + fuzzySheepRepulsion * Ra + ", " + eps + " " + fuzzyNoise * eps);
+        //    Debug.Log("Fuzzy theta: " + desiredThetaVector + " " + desiredThetaVector2 + ", " + desiredTheta + " " + desiredTheta2);
+        //}
         //}
 
         //this.desiredTheta;
