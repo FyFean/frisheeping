@@ -371,7 +371,7 @@ public class FuzzyLogicMovement
             Dictionary<CharacteristicMovement, float> CurrentInputs = new Dictionary<CharacteristicMovement, float>();
             CurrentInputs.Add(CharacteristicMovement.Heading, sheepAng[v]);
             CurrentInputs.Add(CharacteristicMovement.Speed, sheepSpeed[v]);
-            CurrentInputs.Add(CharacteristicMovement.Significance, 1 / SheepPos[v]);
+            CurrentInputs.Add(CharacteristicMovement.Significance, 1f);
 
             if (this.sheep_id == 1)
             {
@@ -426,19 +426,19 @@ public class FuzzyLogicMovement
                 finalValues[i] = max_val;
             }
 
-            if (this.sheep_id == 1)
-            {
-                Debug.Log("test move" + decision + ": " + string.Join(", ", finalValues));
-            }
+            //if (this.sheep_id == 1)
+            //{
+            //    Debug.Log("test move" + decision + ": " + string.Join(", ", finalValues));
+            //}
             finalDict.Add(decision, finalValues);
         }
 
         // 5. Deffuzify via centroids
         float[] centroids = CalcCentroids(finalDict);
-        if (this.sheep_id == 1)
-        {
-            Debug.Log("test move cent: " + string.Join(", ", centroids));
-        }
+        //if (this.sheep_id == 1)
+        //{
+        //    Debug.Log("test move cent: " + string.Join(", ", centroids));
+        //}
 
 
         return centroids;
@@ -477,11 +477,10 @@ public class FuzzyLogicMovement
         foreach (var val in fuzzySet)
         {
             numerator += val * (start + i * step);
-            denominator += (start + i * step);
+            denominator += val;//(start + i * step);
             i++;
         }
 
-        // Handle division by zero
         if (denominator == 0.0f)
         {
             return 0.0f;

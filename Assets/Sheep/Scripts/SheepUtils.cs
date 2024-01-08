@@ -96,14 +96,26 @@ public static class SheepUtils
 
         foreach (var sheep in neighborTransforms)
         {
-            Transform neighborTransform = sheep.transform;
-            //Vector3 neighborDirection = (neighborTransform.position - currentPosition.position).normalized;
-            float angle = Vector3.Angle(currentDirection, neighborTransform.forward);
-            Vector3 crossProduct = Vector3.Cross(currentDirection, neighborTransform.forward);
-            float sign = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
+            //float headingDiff = Vector3.Angle(currentDirection, sheep.transform.forward);
+            //Vector3 crossProduct = Vector3.Cross(currentDirection, sheep.transform.forward);
+            //float signHeading = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
 
-            float signedAngle = angle * sign;
-            angles.Add(signedAngle + 180);
+            //Vector3 neighborDirection = (sheep.transform.position - currentPosition.position).normalized;
+            //float positionDiff = Vector3.Angle(currentDirection, neighborDirection);
+            //crossProduct = Vector3.Cross(currentDirection, neighborDirection);
+            //float signPos = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
+
+            //float signedAngle = (headingDiff * signHeading + positionDiff * signPos) / 2.0f;
+            //angles.Add(signedAngle + 180f);
+
+
+            //Vector3 directionVector = currentPosition.position - sheep.transform.position;
+            //float thetaRad = Mathf.Atan2(directionVector.z, directionVector.x);
+
+            //float thetaDeg = Mathf.Rad2Deg * thetaRad;
+
+            //angles.Add(thetaDeg + 180f);
+            angles.Add(sheep.getTheta() + 180f);
         }
 
         return angles.ToArray();

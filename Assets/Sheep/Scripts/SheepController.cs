@@ -98,6 +98,11 @@ public class SheepController : MonoBehaviour
     private float desiredTheta = .0f;
     private float theta;
 
+    public float getTheta()
+    {
+        return theta;
+    }
+
     // 
 
 
@@ -126,6 +131,23 @@ public class SheepController : MonoBehaviour
     // cached position
     [HideInInspector]
     public Vector3 position = new Vector3();
+
+    public float CalculateAverage(float[] array)
+    {
+        if (array == null || array.Length == 0)
+        {
+            return 0.0f;
+        }
+
+        float sum = 0.0f;
+
+        foreach (float number in array)
+        {
+            sum += number;
+        }
+
+        return sum / array.Length;
+    }
 
     void Start()
     {
@@ -173,6 +195,11 @@ public class SheepController : MonoBehaviour
             cottonColor = new Color(grayShade, grayShade, grayShade, 1.0f);
         }
 
+        if (this.id == 40)
+        {
+            cottonColor = new Color(1f, 0f, 0f, 1.0f);
+        }
+
         foreach (Renderer fur in sheepCottonParts)
         {
             if (fur.materials.Length < 2) fur.material.color = cottonColor;
@@ -207,6 +234,11 @@ public class SheepController : MonoBehaviour
                 cottonColor = new Color(.0f, 1.0f, .0f, 1.0f);
 #endif
                 break;
+        }
+
+        if (this.id == 40)
+        {
+            cottonColor = new Color(1f, 0f, 0f, 1.0f);
         }
 
 #if DEBUG_ON
@@ -283,8 +315,8 @@ public class SheepController : MonoBehaviour
             // drives update
             if (drivesTimer < 0)
             {
-                StrombomUpdate();
-                //FuzzyUpdate();
+                //StrombomUpdate();
+                FuzzyUpdate();
                 drivesTimer = drivesUpdateInterval;
             }
         }
@@ -609,7 +641,7 @@ public class SheepController : MonoBehaviour
             dogs = dogs.Where(dog => IsVisible(dog, GM.SheepParametersStrombom.blindAngle));
         dogs = dogs.OrderBy(d => d, new ByDistanceFrom(transform.position))
             .Take(GM.SheepParametersStrombom.n);
-        var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id);
+        var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => sheepNeighbour.sheepState != Enums.SheepState.idle && !sheepNeighbour.dead && sheepNeighbour.id != id);
         if (GM.SheepParametersStrombom.occlusion)
             sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle));
 #if false // call transform.position
@@ -619,7 +651,7 @@ public class SheepController : MonoBehaviour
 #else // use cached position
         sheepNeighbours = sheepNeighbours
                 .OrderBy(d => d, new ByDistanceFrom(this))
-                .Take(GM.SheepParametersStrombom.n);
+                .Take(5);
 #endif
         Vector3[] SheepPos = SheepUtils.GetSheepPositions(sheepNeighbours);
         Vector3[] DogPos = SheepUtils.GetDogPositions(dogs);
@@ -630,6 +662,7 @@ public class SheepController : MonoBehaviour
         float[] sheepSpeeds = SheepUtils.GetSheepSpeeds(curr_speed, sheepNeighbours);
 
         float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist, sheepAng, sheepSpeeds);
+        float avg_ang = this.CalculateAverage(sheepAng);
 
         Vector3 Rs = new Vector3();
         float R_mag = 0f;
@@ -647,8 +680,9 @@ public class SheepController : MonoBehaviour
             {
                 stateFloat = 2.5f;
             }
-            else { 
-            stateFloat = 1.5f;
+            else
+            {
+                stateFloat = 1.5f;
             }
 
             //stateFloat = 0.8f * stateFloat + 0.2f * fuzzy_values[0];
@@ -661,18 +695,64 @@ public class SheepController : MonoBehaviour
         this.sheepState = SheepUtils.FloatToSpeedEnum(stateFloat);
 
 
-        Vector3 dog_rep = GM.SheepParametersStrombom.h * transform.forward + 3f * Rs.normalized;
-        float dogTheta = (Mathf.Atan2(dog_rep.z, dog_rep.x)) * Mathf.Rad2Deg;
-        this.desiredTheta = 0.2f * dogTheta + 0.8f * (fuzzy_values[1] - 180f);
-        //this.desiredTheta = dogTheta;
-        if (this.id == 1)
+        Vector3 otherThetas = GM.SheepParametersStrombom.h * transform.forward + 3f * Rs.normalized;
+
+        Vector3 fenceTheta = new Vector3();
+        float r_f2 = GM.SheepParametersStrombom.r_f * GM.SheepParametersStrombom.r_f;
+        foreach (Collider fenceCollider in GM.fenceColliders)
+        {
+            Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(transform.position);
+            if ((transform.position - closestPoint).sqrMagnitude < r_f2)
+            {
+                Vector3 e_ij = closestPoint - transform.position;
+                float d_ij = e_ij.magnitude;
+
+                float f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersStrombom.r_f) / GM.SheepParametersStrombom.r_f);
+                fenceTheta += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
+                // if walking transition to idle mode the closer to the fence the more likely
+                //if (this.sheepState == Enums.SheepState.walking)
+                //    if (Random.Range(.0f, 1.0f) < 1f - (d_ij / GM.SheepParametersStrombom.r_f))
+                //        this.sheepState = Enums.SheepState.idle;
+            }
+        }
+
+
+        float otherThetaFloat = (Mathf.Atan2(otherThetas.z, otherThetas.x)) * Mathf.Rad2Deg;
+        float fenceThetaFloat = (Mathf.Atan2(fenceTheta.z, fenceTheta.x)) * Mathf.Rad2Deg;
+
+        if (this.sheepState == Enums.SheepState.idle)
+        {
+            //this.sheepState = Enums.SheepState.walking;
+            //this.desiredTheta = 0.1f * otherThetaFloat + 0.9f * (fuzzy_values[1] - 180f);
+
+        }
+        else if (this.sheepState == Enums.SheepState.walking)
+        {
+            //this.desiredTheta = 0.6f * otherThetaFloat + 0.4f * (fuzzy_values[1] - 180f);
+        }
+        else
+        {
+            //this.desiredTheta = 0.8f * otherThetaFloat + 0.2f * (fuzzy_values[1] - 180f);
+        }
+        if (fenceThetaFloat > 0)
+        {
+            this.desiredTheta = 0.2f * otherThetaFloat + 0.4f * (fuzzy_values[1] - 180f) + 0.6f * fenceThetaFloat;
+        }
+        else {
+            this.desiredTheta = 0.3f * otherThetaFloat + 0.7f * (fuzzy_values[1] - 180f);
+
+        }
+
+        //this.desiredTheta = otherThetaFloat;
+        if (this.id == 40)
         {
             Debug.Log("testt (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
             //Debug.Log("test move (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepSpeeds));
             //Debug.Log("final test (" + string.Join(", ", fuzzy_values) + ")" + this.sheepState + " " + this.desiredTheta);
-            //Debug.Log("final test: " + this.transform.position + " | " + stateFloat + " " + this.sheepState + " " + R_mag + " | " + ", " + dog_rep + " " + Rs + " " + this.desiredTheta);
+            //Debug.Log("final test: " + this.transform.position + " " + this.transform.forward + " | " + stateFloat + " " + this.sheepState + " " + R_mag + " | " + ", " + " " + Rs + " " + this.desiredTheta);
             float tt = fuzzy_values[1] - 180f;
-            Debug.Log("final test: " + this.transform.position + " | " + dogTheta+" "+ tt + " " + this.desiredTheta);
+            Debug.Log("final test: " + fenceThetaFloat);
+            //Debug.Log("final test: " + this.transform.position + " | " +this.theta + " " + otherThetaFloat + " "+ fenceThetaFloat + " " + tt + " " + this.desiredTheta);
         }
 
         //if (dogs.Count() == 0)
@@ -726,25 +806,7 @@ public class SheepController : MonoBehaviour
         //      GM.SheepParametersStrombom.rho_a * (fuzzySheepRepulsion * Ra).normalized +
         //      GM.SheepParametersStrombom.rho_s * (fuzzyDogRepulsion * Rs).normalized;
 
-        //    // repulsion from fences and trees
-        //    float r_f2 = GM.SheepParametersStrombom.r_f * GM.SheepParametersStrombom.r_f;
-        //    foreach (Collider fenceCollider in GM.fenceColliders)
-        //    {
-        //        Vector3 closestPoint = fenceCollider.ClosestPointOnBounds(transform.position);
-        //        if ((transform.position - closestPoint).sqrMagnitude < r_f2)
-        //        {
-        //            Vector3 e_ij = closestPoint - transform.position;
-        //            float d_ij = e_ij.magnitude;
-
-        //            float f_ij = Mathf.Min(.0f, (d_ij - GM.SheepParametersStrombom.r_f) / GM.SheepParametersStrombom.r_f);
-        //            desiredThetaVector += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
-        //            desiredThetaVector2 += GM.SheepParametersStrombom.rho_f * f_ij * e_ij.normalized;
-        //            // if walking transition to idle mode the closer to the fence the more likely
-        //            if (sheepState == Enums.SheepState.walking)
-        //                if (Random.Range(.0f, 1.0f) < 1f - (d_ij / GM.SheepParametersStrombom.r_f))
-        //                    sheepState = Enums.SheepState.idle;
-        //        }
-        //    }
+        // repulsion from fences and trees
 
         //    // extract desired heading
         //    desiredTheta = (Mathf.Atan2(desiredThetaVector.z, desiredThetaVector.x) + eps) * Mathf.Rad2Deg;
