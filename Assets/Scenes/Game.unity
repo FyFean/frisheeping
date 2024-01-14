@@ -109313,7 +109313,7 @@ MonoBehaviour:
     r_f: 3
     modifiedRunningDistance: 0
   DogBehaviour: 4
-  disableRendering: 1
+  disableRendering: 0
   timeScale: 1
   useFixedTimestep: 1
   fixedTimestep: 0.02

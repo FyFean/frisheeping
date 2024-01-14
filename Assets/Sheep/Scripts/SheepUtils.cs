@@ -89,6 +89,23 @@ public static class SheepUtils
         return distances;
     }
 
+    public static float CalculateAverage(float[] array)
+    {
+        if (array == null || array.Length == 0)
+        {
+            return 0.0f;
+        }
+
+        float sum = 0.0f;
+
+        foreach (float number in array)
+        {
+            sum += number;
+        }
+
+        return sum / array.Length;
+    }
+
     public static float[] CalculateAngles(Transform currentPosition, IEnumerable<SheepController> neighborTransforms)
     {
         Vector3 currentDirection = currentPosition.forward;
@@ -96,14 +113,16 @@ public static class SheepUtils
 
         foreach (var sheep in neighborTransforms)
         {
-            Transform neighborTransform = sheep.transform;
-            //Vector3 neighborDirection = (neighborTransform.position - currentPosition.position).normalized;
-            float angle = Vector3.Angle(currentDirection, neighborTransform.forward);
-            Vector3 crossProduct = Vector3.Cross(currentDirection, neighborTransform.forward);
-            float sign = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
+            //Transform neighborTransform = sheep.transform;
+            ////Vector3 neighborDirection = (neighborTransform.position - currentPosition.position).normalized;
+            //float angle = Vector3.Angle(currentDirection, neighborTransform.forward);
+            //Vector3 crossProduct = Vector3.Cross(currentDirection, neighborTransform.forward);
+            //float sign = Mathf.Sign(Vector3.Dot(Vector3.up, crossProduct));
 
-            float signedAngle = angle * sign;
-            angles.Add(signedAngle + 180);
+            //float signedAngle = angle * sign;
+            //float signedAngle = (sheep.getTheta() + 180) % 360;
+            float signedAngle = sheep.getTheta();
+            angles.Add(signedAngle);
         }
 
         return angles.ToArray();

@@ -67,6 +67,8 @@ public class RuleMovement
                 break;
         }
 
+
+
         // 2b. sample output distribution from 2a value
         float[] sampled = SampleFunction(output_decisions, fuzzyFinal, output_values);
 
@@ -84,10 +86,13 @@ public class RuleMovement
                     // heading same -> heading negative
                     // heading right -> heading neutral 
                     case "positive":
+                        //return TriangularMembership(value, 0, 90, 180);
                         return TriangularMembership(value, 0, 90, 180);
                     case "neutral":
+                        //return TriangularMembership(value, 180, 270, 360);
                         return TriangularMembership(value, 180, 270, 360);
-                    case "negative":
+                    case "negative":    
+                        //return TriangularMembership(value, 90, 180, 270);
                         return TriangularMembership(value, 90, 180, 270);
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
@@ -113,12 +118,12 @@ public class RuleMovement
                 switch (single_val)
                 {
                     case "positive":
-                        return TriangularMembership(value, 0, 0, 1);
+                        return LinearMembership(value, 0, 1);
                     //return TrapezoidalMembership(value, 0, 20, 40, 60);
                     case "neutral":
                         return -1.0f;
                     case "negative":
-                        return TriangularMembership(value, 0, 1, 1);
+                        return LinearMembership(value, 1, 0);
                     //return TrapezoidalMembership(value, 40, 60, 80, 100);
                     default:
                         throw new ArgumentException($"Unsupported characteristic: {single_val}");
@@ -136,31 +141,32 @@ public class RuleMovement
         {
             case DecisionModelMovement.Heading:
                 {
+                    float minValue = 0.0f;
+                    float maxValue = 360.0f;
+                    float interval = (maxValue - minValue) / (N_SAMPLES - 1);
                     switch (single_val)
                     {
                         case "positive":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
-                                //xValues[i] = minValue + i * interval;
-                                float v = Mathf.Min(value, TriangularMembership(i, 0, 90, 180));
+                                float x = minValue + i * interval;
+                                float v = Mathf.Min(value, TriangularMembership(x, 0, 90, 180));
                                 sampled[i] = v;
-
                             }
-
                             return sampled;
                         case "negative":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
-                                //xValues[i] = minValue + i * interval;
-                                float v = Mathf.Min(value, TriangularMembership(i, 180, 270, 360));
+                                float x = minValue + i * interval;
+                                float v = Mathf.Min(value, TriangularMembership(x, 90, 180, 270));
                                 sampled[i] = v;
                             }
-
                             return sampled;
                         case "neutral":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
-                                float v = Mathf.Min(value, TriangularMembership(i, 90, 180, 270));
+                                float x = minValue + i * interval;
+                                float v = Mathf.Min(value, TriangularMembership(x, 180, 270, 360));
                                 sampled[i] = v;
                             }
                             return sampled;
@@ -170,13 +176,17 @@ public class RuleMovement
                 }
             case DecisionModelMovement.Speed:
                 {
+                    float minValue = 0.0f;
+                    float maxValue = 3.0f;
+                    float interval = (maxValue - minValue) / (N_SAMPLES - 1);
                     switch (single_val)
                     {
                         case "positive":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
+                                float x = minValue + i * interval;
                                 //xValues[i] = minValue + i * interval;
-                                float v = Mathf.Min(value, TriangularMembership(i, 0f, 0f, 1.5f));
+                                float v = Mathf.Min(value, TriangularMembership(x, 0f, 0f, 1.5f));
                                 sampled[i] = v;
                             }
 
@@ -184,16 +194,16 @@ public class RuleMovement
                         case "neutral":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
-                                //xValues[i] = minValue + i * interval;
-                                float v = Mathf.Min(value, TriangularMembership(i, 1.5f, 3f, 3f));
+                                float x = minValue + i * interval;
+                                float v = Mathf.Min(value, TriangularMembership(x, 1.5f, 3f, 3f));
                                 sampled[i] = v;
                             }
                             return sampled;
                         case "negative":
                             for (int i = 0; i < this.N_SAMPLES; i++)
                             {
-                                //xValues[i] = minValue + i * interval;
-                                float v = Mathf.Min(value, TriangularMembership(i, 0f, 1.5f, 3f));
+                                float x = minValue + i * interval;
+                                float v = Mathf.Min(value, TriangularMembership(x, 0f, 1.5f, 3f));
                                 sampled[i] = v;
                             }
 
@@ -224,6 +234,13 @@ public class RuleMovement
         if (b < x && x <= c) return 1.0f;
         if (c < x && x <= d) return (d - x) / (d - c);
         return 0.0f;
+    }
+
+    static float LinearMembership(float x, float a, float b)
+    {
+        if (x <= a) return 0.0f;
+        if (a < x && x <= b) return (x - a) / (b - a);
+        return 1.0f;
     }
 
     float GaussianMembership(float x, float c, float sigma)
@@ -264,7 +281,7 @@ public class FuzzyLogicMovement
             // significance high -> significance negative
             // significance low -> significance positive
             
-            new RuleMovement("max", new CharacteristicMovement[] {CharacteristicMovement.Heading, CharacteristicMovement.Significance }, new string[] { "positive", "negative"}, DecisionModelMovement.Heading, "positive", 1.0f),
+            new RuleMovement("min", new CharacteristicMovement[] {CharacteristicMovement.Heading, CharacteristicMovement.Significance }, new string[] { "positive", "negative"}, DecisionModelMovement.Heading, "positive", 1.0f),
             new RuleMovement("max", new CharacteristicMovement[] {CharacteristicMovement.Heading, CharacteristicMovement.Significance}, new string[] {"neutral", "negative"}, DecisionModelMovement.Heading, "neutral", 1.0f),
             new RuleMovement("max", new CharacteristicMovement[] {CharacteristicMovement.Heading, CharacteristicMovement.Significance }, new string[] { "negative", "positive"}, DecisionModelMovement.Heading, "negative", 1.0f),
             new RuleMovement("max", new CharacteristicMovement[] {CharacteristicMovement.Speed, CharacteristicMovement.Significance }, new string[] { "positive", "negative"}, DecisionModelMovement.Speed, "positive", 0.0f),
@@ -290,17 +307,21 @@ public class FuzzyLogicMovement
         return sum / array.Length;
     }
 
-    public void AddCharacteristicMovementVal(
-        Dictionary<CharacteristicMovement, float> CurrI,
-        CharacteristicMovement c,
-        float degree
-        )
+
+    float ScaleSheepPosValue(float value)
     {
-        float val = this.FuzzyInput[c];
-        val += degree;
-        // constrain value between 0 and 100
-        float contrained_val = Math.Max(0.0f, Math.Min(100.0f, val));
-        CurrI.Add(c, contrained_val);
+        if (value <= 5)
+        {
+            return 1.0f;
+        }
+        else if (value > 5 && value <= 60)
+        {
+            return 1.0f - (value - 5) / 55.0f;
+        }
+        else
+        {
+            return 0.0f;
+        }
     }
 
     float MapValueToRange(float originalValue, float originalMin, float originalMax, float newMin, float newMax)
@@ -315,7 +336,7 @@ public class FuzzyLogicMovement
         float mappedValue = ((originalValue - originalMin) / (originalMax - originalMin)) * (newMax - newMin) + newMin;
         return mappedValue;
     }
-    public float[] fuzzyfy(Vector3 CurrPos, float[] SheepPos, float[] DogPos, float[] sheepAng, float[] sheepSpeed)
+    public float[] fuzzyfy(float currTheta, float[] SheepPos, float[] DogPos, float[] sheepAng, float[] sheepSpeed)
     {
         //SheepPos = new float[] { SheepPos[0] };
         //sheepAng = new float[] { sheepAng[0] += 180 };
@@ -327,10 +348,10 @@ public class FuzzyLogicMovement
 
         //}
         // change model by current state of the env.
-        float avg_dog_dist = this.CalculateAverage(DogPos);
+        //float avg_dog_dist = this.CalculateAverage(DogPos);
         ////float avg_sheep_dist = this.CalculateAverage(SheepPos);
-        float basic_range1 = this.MapValueToRange(avg_dog_dist, 0.0f, 5.0f, 0.0f, 2.0f);
-        //basic_range1 += 1;
+        //float basic_range1 = this.MapValueToRange(avg_dog_dist, 0.0f, 5.0f, 0.0f, 2.0f);
+
         //float big_range1 = this.MapValueToRange(avg_dog_dist, 0.0f, 10.0f, -50.0f, 50.0f);
         //float basic_range2 = this.MapValueToRange(avg_sheep_dist, 0.0f, 5.0f, -10.0f, 10.0f);
         //float big_range2 = this.MapValueToRange(avg_sheep_dist, 0.0f, 10.0f, -50.0f, 50.0f);
@@ -368,20 +389,22 @@ public class FuzzyLogicMovement
         //1. and 2. and 3. (https://www.mathworks.com/help/fuzzy/mamdani_tipping_new.png)
         for (int v = 0; v < SheepPos.Length; v++)
         {
+            float significance = ScaleSheepPosValue(SheepPos[v]);
+
             Dictionary<CharacteristicMovement, float> CurrentInputs = new Dictionary<CharacteristicMovement, float>();
             CurrentInputs.Add(CharacteristicMovement.Heading, sheepAng[v]);
             CurrentInputs.Add(CharacteristicMovement.Speed, sheepSpeed[v]);
-            CurrentInputs.Add(CharacteristicMovement.Significance, 1 / SheepPos[v]);
-
-            if (this.sheep_id == 1)
-            {
-                //Debug.Log("final param: " + sheepAng[v] + " " + basic_range1 + " " + 1 / SheepPos[v]);
-            }
+            CurrentInputs.Add(CharacteristicMovement.Significance, significance);
 
             for (int i = 0; i < this.rules.Length; i++)
             {
                 RuleMovement curr_rule = this.rules[i];
                 float[] f_val = curr_rule.evaluateRule(CurrentInputs);
+                //if (this.sheep_id == 15)
+                //{
+
+                //    Debug.Log("final test ***" + significance + "* " + sheepAng[v] + ", " + curr_rule.output_decisions + " " + curr_rule.output_values + ": " + string.Join(", ", f_val));
+                //}
                 for (int j = 0; j < f_val.Length; j++)
                 {
                     outputDict[curr_rule.output_decisions][curr_rule.output_values][j] += f_val[j];
@@ -400,6 +423,12 @@ public class FuzzyLogicMovement
             {
                 if (innerCountDict[outputKey] > 0)
                 {
+                    //if (this.sheep_id == 15)
+                    //{
+                    //    Debug.Log("final test *" + innerCountDict[outputKey] + "* " +);
+
+                    //   Debug.Log("final test *" + innerCountDict[outputKey] + "* " + decision + ", " + outputKey + ": " + string.Join(", ", innerOutputDict[outputKey]));
+                    //}
                     for (int i = 0; i < innerOutputDict[outputKey].Length; i++)
                     {
                         innerOutputDict[outputKey][i] /= innerCountDict[outputKey];
@@ -426,18 +455,18 @@ public class FuzzyLogicMovement
                 finalValues[i] = max_val;
             }
 
-            if (this.sheep_id == 1)
+            if (this.sheep_id == 15)
             {
-                Debug.Log("test move" + decision + ": " + string.Join(", ", finalValues));
+                Debug.Log("final test" + decision + ": " + string.Join(", ", finalValues));
             }
             finalDict.Add(decision, finalValues);
         }
 
         // 5. Deffuzify via centroids
         float[] centroids = CalcCentroids(finalDict);
-        if (this.sheep_id == 1)
+        if (this.sheep_id == 15)
         {
-            Debug.Log("test move cent: " + string.Join(", ", centroids));
+            Debug.Log("final test: " + string.Join(", ", centroids));
         }
 
 
@@ -477,9 +506,14 @@ public class FuzzyLogicMovement
         foreach (var val in fuzzySet)
         {
             numerator += val * (start + i * step);
-            denominator += (start + i * step);
+            denominator += val;//(start + i * step);
+            //if (this.sheep_id == 15)
+            //{
+            //    Debug.Log(val + " " + (start + i * step) + " " + val * (start + i * step));
+            //}
             i++;
         }
+
 
         // Handle division by zero
         if (denominator == 0.0f)

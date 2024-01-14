@@ -99,6 +99,9 @@ public class SheepController : MonoBehaviour
     private float theta;
 
     // 
+    public float getTheta() {
+        return this.theta;
+    }
 
 
     // Ginelli parameters - overriden by GM
@@ -173,6 +176,10 @@ public class SheepController : MonoBehaviour
             cottonColor = new Color(grayShade, grayShade, grayShade, 1.0f);
         }
 
+        if (this.id == 15) {
+            cottonColor = new Color(1f, 0f, 0f, 1.0f);
+        }
+
         foreach (Renderer fur in sheepCottonParts)
         {
             if (fur.materials.Length < 2) fur.material.color = cottonColor;
@@ -208,6 +215,10 @@ public class SheepController : MonoBehaviour
 #endif
                 break;
         }
+        if (this.id == 15)
+        {
+            cottonColor = new Color(1f, 0f, 0f, 1.0f);
+        }
 
 #if DEBUG_ON
         foreach (Renderer fur in sheepCottonParts)
@@ -216,6 +227,30 @@ public class SheepController : MonoBehaviour
             else fur.materials[1].color = cottonColor;
         }
 #endif
+    }
+
+    float CalculateAverageDegree(float angle1, float angle2)
+    {
+        // Normalize angles to the range of -180 to 180 degrees
+        angle1 = NormalizeAngle(angle1);
+        angle2 = NormalizeAngle(angle2);
+
+        // Calculate the average
+        float average = (angle1 + angle2) / 2f;
+
+        // Normalize the average angle
+        return NormalizeAngle(average);
+    }
+
+    float NormalizeAngle(float angle)
+    {
+        // Normalize angle to the range of -180 to 180 degrees
+        while (angle < -180)
+            angle += 360;
+        while (angle > 180)
+            angle -= 360;
+
+        return angle;
     }
 
     private void FixedUpdate()
@@ -283,8 +318,8 @@ public class SheepController : MonoBehaviour
             // drives update
             if (drivesTimer < 0)
             {
-                StrombomUpdate();
-                //FuzzyUpdate();
+                //StrombomUpdate();
+                FuzzyUpdate();
                 drivesTimer = drivesUpdateInterval;
             }
         }
@@ -609,7 +644,7 @@ public class SheepController : MonoBehaviour
             dogs = dogs.Where(dog => IsVisible(dog, GM.SheepParametersStrombom.blindAngle));
         dogs = dogs.OrderBy(d => d, new ByDistanceFrom(transform.position))
             .Take(GM.SheepParametersStrombom.n);
-        var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id);
+        var sheepNeighbours = GM.sheepList.Where(sheepNeighbour => !sheepNeighbour.dead && sheepNeighbour.id != id && sheepNeighbour.sheepState != Enums.SheepState.idle);
         if (GM.SheepParametersStrombom.occlusion)
             sheepNeighbours = sheepNeighbours.Where(sheepNeighbour => sheepNeighbour.IsVisible(sheepNeighbour, GM.SheepParametersStrombom.blindAngle));
 #if false // call transform.position
@@ -619,7 +654,7 @@ public class SheepController : MonoBehaviour
 #else // use cached position
         sheepNeighbours = sheepNeighbours
                 .OrderBy(d => d, new ByDistanceFrom(this))
-                .Take(GM.SheepParametersStrombom.n);
+                .Take(5);
 #endif
         Vector3[] SheepPos = SheepUtils.GetSheepPositions(sheepNeighbours);
         Vector3[] DogPos = SheepUtils.GetDogPositions(dogs);
@@ -629,7 +664,8 @@ public class SheepController : MonoBehaviour
         float curr_speed = SheepUtils.SpeedEnumtoFloat(this.sheepState);
         float[] sheepSpeeds = SheepUtils.GetSheepSpeeds(curr_speed, sheepNeighbours);
 
-        float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.position, sheepDist, dogDist, sheepAng, sheepSpeeds);
+        float[] fuzzy_values = fuzzyLogicMovement.fuzzyfy(this.theta, sheepDist, dogDist, sheepAng, sheepSpeeds);
+        fuzzy_values[1] = ((fuzzy_values[1]- 180) % 360);
 
         Vector3 Rs = new Vector3();
         float R_mag = 0f;
@@ -660,20 +696,34 @@ public class SheepController : MonoBehaviour
 
         this.sheepState = SheepUtils.FloatToSpeedEnum(stateFloat);
 
-
+        float avg_dog_d = SheepUtils.CalculateAverage(dogDist);
+        float avg_s_d = SheepUtils.CalculateAverage(sheepAng);
         Vector3 dog_rep = GM.SheepParametersStrombom.h * transform.forward + 3f * Rs.normalized;
         float dogTheta = (Mathf.Atan2(dog_rep.z, dog_rep.x)) * Mathf.Rad2Deg;
-        this.desiredTheta = 0.2f * dogTheta + 0.8f * (fuzzy_values[1] - 180f);
+
+
+        //if (fuzzy_values[1] < 0.5 && fuzzy_values[1] > -0.5) 
+        //{
+        //    this.desiredTheta = dogTheta;
+
+        //}
+        //else if (avg_dog_d < 12.5f)
+        //{
+        //    this.desiredTheta = 0.9f * dogTheta + 0.1f * (fuzzy_values[1]);
+        //}
+        //else
+        //{
+        this.desiredTheta = CalculateAverageDegree(dogTheta, fuzzy_values[1]);
+        //}
         //this.desiredTheta = dogTheta;
-        if (this.id == 1)
+        if (this.id == 15)
         {
-            Debug.Log("testt (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
-            //Debug.Log("test move (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepSpeeds));
+            //Debug.Log("final test 1 (" + sheepAng.Length + "): " + string.Join(", ", sheepAng));
+            //Debug.Log("final test 2 (" + sheepSpeeds.Length + "): " + string.Join(", ", sheepDist));
             //Debug.Log("final test (" + string.Join(", ", fuzzy_values) + ")" + this.sheepState + " " + this.desiredTheta);
             //Debug.Log("final test: " + this.transform.position + " | " + stateFloat + " " + this.sheepState + " " + R_mag + " | " + ", " + dog_rep + " " + Rs + " " + this.desiredTheta);
-            float tt = fuzzy_values[1] - 180f;
-            Debug.Log("final test: " + this.transform.position + " | " + dogTheta+" "+ tt + " " + this.desiredTheta);
         }
+        //Debug.Log("final test 12: " + this.desiredTheta + " | " + fuzzy_values[1]+ " "+dogTheta +"  " + this.theta);
 
         //if (dogs.Count() == 0)
         //{
